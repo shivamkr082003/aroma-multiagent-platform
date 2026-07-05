@@ -16,9 +16,6 @@
   <img src="https://img.shields.io/github/issues/shivamkr082003/aroma-multiagent-platform?style=for-the-badge&color=2196f3&labelColor=1a1a1a" />
 </a>
 
-<a href="https://github.com/shivamkr082003/aroma-multiagent-platform/blob/main/LICENSE">
-  <img src="https://img.shields.io/badge/license-MIT-9c27b0?style=for-the-badge&labelColor=1a1a1a" />
-</a>
 
 <br/><br/>
 
@@ -231,11 +228,6 @@ Contributions are welcome.
 4. Push your branch.
 5. Open a Pull Request.
 
----
-
-# 📜 License
-
-This project is licensed under the MIT License.
 
 ---
 
