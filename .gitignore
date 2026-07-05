@@ -1,0 +1,35 @@
+# Node
+node_modules/
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Env files
+.env
+
+# OS files
+.DS_Store
+Thumbs.db
+
+
+# Temp files
+temp_*.pdf
+
+# Qdrant storage
+qdrant_storage/
+
+
+# Temp audio files
+temp_*
+*.mp3
+*.wav
+*.webm
+
+# Optional (better)
+temp/
+uploads/

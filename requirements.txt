@@ -1,0 +1,75 @@
+# ===========================
+#  API FRAMEWORK
+# ===========================
+fastapi
+uvicorn[standard]
+python-multipart
+
+# ===========================
+#  LANGCHAIN ECOSYSTEM
+# ===========================
+langchain
+langchain-core
+langchain-openai
+langchain-community
+langchain-qdrant
+
+# ===========================
+#  LANGGRAPH  ← NEW
+# ===========================
+langgraph
+langgraph-checkpoint          # state persistence between graph runs
+langgraph-checkpoint-redis    # Redis-backed checkpointing for LangGraph ← NEW
+
+# ===========================
+#  OPENAI
+# ===========================
+openai
+tiktoken
+
+# ===========================
+#  WEB SEARCH & SCRAPING
+# ===========================
+tavily-python>=0.3.0
+beautifulsoup4>=4.12.0
+requests>=2.31.0
+lxml>=5.0.0
+httpx
+playwright>=1.44.0            # ← NEW: headless browser fallback for JS-rendered pages (SPAs/dashboards)
+
+# ===========================
+#  RAG CORE
+# ===========================
+qdrant-client
+sentence-transformers
+pypdf
+unstructured
+tiktoken
+
+# ===========================
+#  ADVANCED RAG
+# ===========================
+rank-bm25
+numpy
+scikit-learn
+whoosh
+
+# ===========================
+#  REDIS  ← NEW
+# ===========================
+redis>=5.0.0                  # async-ready Redis client (replaces redis-py)
+hiredis>=2.3.0                # C-accelerated Redis parser (faster serialization)
+
+# ===========================
+#  POSTGRES / ORM
+# ===========================
+sqlalchemy
+psycopg2-binary
+alembic
+
+# ===========================
+#  ENV & VALIDATION
+# ===========================
+python-dotenv
+pydantic
+pydantic-settings              # ← NEW: for typed settings/config management
