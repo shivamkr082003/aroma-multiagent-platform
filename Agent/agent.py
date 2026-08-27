@@ -1,6 +1,10 @@
 from dotenv import load_dotenv
 load_dotenv()
 
+import os
+import asyncio
+import concurrent.futures
+import logging
 import re
 import json
 import operator
@@ -21,8 +25,21 @@ from tools import web_search, scrape_url
 # ===========================
 qdrant_client = QdrantClient(url="http://localhost:6333")
 
-llm = ChatOpenAI(model="gpt-4.1-mini", temperature=0.7, timeout=60, max_retries=2)
-router_llm = ChatOpenAI(model="gpt-4.1-mini", temperature=0)
+llm = ChatOpenAI(
+    model="openai/gpt-oss-120b",
+    temperature=0.7,
+    timeout=60,
+    max_retries=2,
+    api_key=os.getenv("GROQ_API_KEY"),
+    base_url="https://api.groq.com/openai/v1",
+)
+
+router_llm = ChatOpenAI(
+    model="openai/gpt-oss-120b",
+    temperature=0,
+    api_key=os.getenv("GROQ_API_KEY"),
+    base_url="https://api.groq.com/openai/v1",
+)
 
 URL_PATTERN = re.compile(r"https?://[^\s)\]>\"']+")
 
@@ -162,6 +179,7 @@ class ChatState(TypedDict):
     user_msg:   str
     session_id: str
     file_id:    str | None
+    user_id:    str
 
     # ── Routing flags (written only by router_node) ──
     has_urls:     bool
@@ -380,6 +398,25 @@ Always end with a direct answer to the original question.
 # ===========================
 #  NODE 3 — ANSWER
 # ===========================
+_mcp_logger = logging.getLogger("aroma.agent.mcp")
+
+
+def _load_mcp_tools(user_id: str) -> list:
+    """Synchronously bridge the agent graph to the asynchronous MCP adapter."""
+    try:
+        from mcp_client.manager import mcp_manager
+        try:
+            asyncio.get_running_loop()
+        except RuntimeError:
+            return asyncio.run(mcp_manager.load_tools(user_id))
+        # This branch is useful if chat() is called by an async host.
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+            return executor.submit(lambda: asyncio.run(mcp_manager.load_tools(user_id))).result(timeout=30)
+    except Exception as exc:
+        _mcp_logger.warning("MCP tool loading failed; continuing without MCP tools: %s", exc)
+        return []
+
+
 def answer_node(state: ChatState) -> dict:
     """Merge all context, call LLM, persist to Redis. Return ONLY reply."""
     history = get_chat_history(state["session_id"])
@@ -406,7 +443,14 @@ def answer_node(state: ChatState) -> dict:
     )
 
     messages.append(HumanMessage(content=final_user_msg))
-    reply = llm.invoke(messages).content
+    mcp_tools = _load_mcp_tools(state.get("user_id", "demo_user"))
+    if mcp_tools:
+        # Existing web tools remain available together with dynamically
+        # configured MCP tools, so the model can choose the right tool.
+        agent = create_react_agent(llm, tools=[web_search, scrape_url, *mcp_tools])
+        reply = agent.invoke({"messages": messages})["messages"][-1].content
+    else:
+        reply = llm.invoke(messages).content
 
     # Persist last 10 turns to Redis
     history.append({"role": "user", "content": state["user_msg"]})
@@ -467,12 +511,13 @@ _graph = build_graph()
 # ===========================
 #  PUBLIC API
 # ===========================
-def chat(user_msg: str, session_id: str, file_id: str = None) -> str:
+def chat(user_msg: str, session_id: str, file_id: str = None, user_id: str = "demo_user") -> str:
     try:
         result = _graph.invoke({
             "user_msg":       user_msg,
             "session_id":     session_id,
             "file_id":        file_id,
+            "user_id":        user_id,
             "has_urls":       False,
             "needs_search":   False,
             "has_docs":       False,

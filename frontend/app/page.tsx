@@ -22,6 +22,16 @@ type Session = {
   created_at: string;
 };
 
+type MCPServer = {
+  id: string;
+  name: string;
+  transport: "http" | "sse" | "stdio";
+  url?: string | null;
+  command?: string | null;
+  args?: string[] | null;
+  enabled: boolean;
+};
+
 const API = "http://127.0.0.1:8000";
 
 function generateId() {
@@ -264,13 +274,16 @@ function NavItem({
   icon,
   label,
   active,
+  onClick,
 }: {
   icon: React.ReactNode;
   label: string;
   active?: boolean;
+  onClick?: () => void;
 }) {
   return (
     <button
+      onClick={onClick}
       className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-[13px] font-medium transition-colors duration-150
         ${active ? "bg-white text-slate-900 shadow-sm border border-slate-200" : "text-slate-500 hover:text-slate-800 hover:bg-white/60"}`}
     >
@@ -773,6 +786,83 @@ function EmptyState({ onSuggestion }: { onSuggestion: (s: string) => void }) {
   );
 }
 
+function MCPPanel({ onClose }: { onClose: () => void }) {
+  const [servers, setServers] = useState<MCPServer[]>([]);
+  const [name, setName] = useState("");
+  const [transport, setTransport] = useState<"http" | "sse" | "stdio">("http");
+  const [url, setUrl] = useState("");
+  const [command, setCommand] = useState("");
+  const [args, setArgs] = useState("");
+  const [status, setStatus] = useState("");
+
+  const loadServers = useCallback(async () => {
+    try {
+      const response = await axios.get<MCPServer[]>(`${API}/mcp/servers`);
+      setServers(response.data);
+    } catch {
+      setStatus("Could not load MCP servers. Is the backend running?");
+    }
+  }, []);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => { void loadServers(); }, 0);
+    return () => window.clearTimeout(timer);
+  }, [loadServers]);
+
+  const addServer = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setStatus("");
+    try {
+      await axios.post(`${API}/mcp/servers`, {
+        name,
+        transport,
+        ...(transport === "stdio"
+          ? { command, args: args.trim() ? args.trim().split(/\s+/) : [] }
+          : { url }),
+      });
+      setName(""); setUrl(""); setCommand(""); setArgs("");
+      setStatus("Server added. It will be available in the next chat message.");
+      await loadServers();
+    } catch (error: unknown) {
+      setStatus(axios.isAxiosError(error) ? String(error.response?.data?.detail ?? "Could not add server.") : "Could not add server.");
+    }
+  };
+
+  const action = async (server: MCPServer, operation: "enable" | "disable" | "test" | "delete") => {
+    try {
+      if (operation === "delete") await axios.delete(`${API}/mcp/servers/${server.id}`);
+      else if (operation === "test") {
+        const response = await axios.post(`${API}/mcp/servers/${server.id}/test`);
+        setStatus(response.data.reachable ? `Connected: ${response.data.tools.map((tool: { name: string }) => tool.name).join(", ") || "no tools returned"}` : `Connection failed: ${response.data.error}`);
+      } else await axios.post(`${API}/mcp/servers/${server.id}/${operation}`);
+      await loadServers();
+    } catch {
+      setStatus("MCP server action failed.");
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/35 p-4" onMouseDown={onClose}>
+      <section className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-5 shadow-2xl" onMouseDown={(event) => event.stopPropagation()}>
+        <div className="flex items-start justify-between gap-4 mb-5">
+          <div><h2 className="text-lg font-semibold text-slate-800">MCP Servers</h2><p className="text-sm text-slate-500 mt-1">Connect tools that Aroma can use during chat.</p></div>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-800 text-xl" aria-label="Close MCP servers">×</button>
+        </div>
+        <form onSubmit={addServer} className="grid grid-cols-1 sm:grid-cols-2 gap-3 rounded-xl border border-slate-200 p-3">
+          <input required value={name} onChange={(event) => setName(event.target.value)} placeholder="Server name" className="rounded-lg border border-slate-200 px-3 py-2 text-sm" />
+          <select value={transport} onChange={(event) => setTransport(event.target.value as "http" | "sse" | "stdio")} className="rounded-lg border border-slate-200 px-3 py-2 text-sm"><option value="http">HTTP</option><option value="sse">SSE</option><option value="stdio">STDIO (local command)</option></select>
+          {transport === "stdio" ? <><input required value={command} onChange={(event) => setCommand(event.target.value)} placeholder="Command, e.g. npx" className="rounded-lg border border-slate-200 px-3 py-2 text-sm" /><input value={args} onChange={(event) => setArgs(event.target.value)} placeholder="Arguments, space-separated" className="rounded-lg border border-slate-200 px-3 py-2 text-sm" /></> : <input required value={url} onChange={(event) => setUrl(event.target.value)} placeholder="https://server.example/mcp" className="sm:col-span-2 rounded-lg border border-slate-200 px-3 py-2 text-sm" />}
+          <button className="sm:col-span-2 rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-800">Add MCP server</button>
+        </form>
+        {status && <p className="mt-3 text-sm text-slate-600">{status}</p>}
+        <div className="mt-4 space-y-2">
+          {servers.length === 0 ? <p className="text-sm text-slate-400">No MCP servers configured.</p> : servers.map((server) => <div key={server.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 px-3 py-3"><div><p className="text-sm font-medium text-slate-800">{server.name} {!server.enabled && <span className="text-slate-400">(disabled)</span>}</p><p className="text-xs text-slate-500">{server.transport.toUpperCase()} · {server.url || server.command}</p></div><div className="flex gap-2 text-xs"><button onClick={() => void action(server, "test")} className="text-slate-600 hover:text-slate-950">Test</button><button onClick={() => void action(server, server.enabled ? "disable" : "enable")} className="text-orange-600 hover:text-orange-800">{server.enabled ? "Disable" : "Enable"}</button><button onClick={() => void action(server, "delete")} className="text-rose-600 hover:text-rose-800">Delete</button></div></div>)}
+        </div>
+      </section>
+    </div>
+  );
+}
+
 // ── Main component ─────────────────────────────────────────────
 export default function Home() {
   const [input, setInput] = useState("");
@@ -785,6 +875,7 @@ export default function Home() {
   const [recording, setRecording] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isDragging, setIsDragging] = useState(false);
+  const [mcpOpen, setMcpOpen] = useState(false);
   const dragCounter = useRef(0);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -1046,6 +1137,7 @@ export default function Home() {
 
   return (
     <>
+      {mcpOpen && <MCPPanel onClose={() => setMcpOpen(false)} />}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap');
         * { font-family: 'Geist', system-ui, sans-serif; }
@@ -1223,7 +1315,8 @@ export default function Home() {
               }
             />
             <NavItem
-              label="Settings"
+              label="MCP Servers"
+              onClick={() => setMcpOpen(true)}
               icon={
                 <svg
                   className="w-4 h-4"

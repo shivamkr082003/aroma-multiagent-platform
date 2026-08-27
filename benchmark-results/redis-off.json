@@ -1,0 +1,870 @@
+{
+  "mode": "REDIS_OFF",
+  "stats": {
+    "count": 20,
+    "avg": 9655.698335543275,
+    "min": 5760.007708973717,
+    "max": 17016.953209007625,
+    "p50": 10253.59529198613,
+    "p75": 11702.686166507192,
+    "p90": 12445.89870387572,
+    "p95": 13249.52439408808,
+    "p99": 16263.46744602371
+  },
+  "avg_db_queries_per_request": 7.5,
+  "avg_db_query_time_ms": 8.182732909335755,
+  "records": [
+    {
+      "session_id": "redis_off_session_0_de1fc5",
+      "turn": 1,
+      "prompt": "Explain what is Redis.",
+      "is_cold": true,
+      "e2e_latency_ms": 12082.901166984811,
+      "db_query_count": 9,
+      "db_total_query_time_ms": 9.6390419639647,
+      "db_queries": [
+        {
+          "statement": "SELECT sessions.id AS sessions_id, sessions.user_id AS sessions_user_id, sessions.title AS sessions_title, sessions.created_at AS sessions_created_at  FROM sessions  WHERE sessions.id = %(id_1)s   LIMIT %(param_1)s",
+          "duration_ms": 1.5206669922918081
+        },
+        {
+          "statement": "INSERT INTO sessions (id, user_id, title) VALUES (%(id)s, %(user_id)s, %(title)s) RETURNING sessions.created_at",
+          "duration_ms": 0.6718339864164591
+        },
+        {
+          "statement": "SELECT sessions.id AS sessions_id, sessions.user_id AS sessions_user_id, sessions.title AS sessions_title, sessions.created_at AS sessions_created_at  FROM sessions  WHERE sessions.id = %(id_1)s   LIMIT %(param_1)s",
+          "duration_ms": 1.2025839532725513
+        },
+        {
+          "statement": "UPDATE sessions SET title=%(title)s WHERE sessions.id = %(sessions_id)s",
+          "duration_ms": 1.194083015434444
+        },
+        {
+          "statement": "INSERT INTO messages (session_id, user_id, role, content) VALUES (%(session_id)s, %(user_id)s, %(role)s, %(content)s) RETURNING messages.id, messages.created_at",
+          "duration_ms": 1.1620830046012998
+        },
+        {
+          "statement": "SELECT messages.id, messages.session_id, messages.user_id, messages.role, messages.content, messages.created_at  FROM messages  WHERE messages.id = %(pk_1)s",
+          "duration_ms": 0.7115000043995678
+        },
+        {
+          "statement": "SELECT mcp_servers.id AS mcp_servers_id, mcp_servers.user_id AS mcp_servers_user_id, mcp_servers.name AS mcp_servers_name, mcp_servers.transport AS mcp_servers_transport, mcp_servers.url AS mcp_servers_url, mcp_servers.headers AS mcp_servers_headers, mcp_servers.command AS mcp_servers_command, mcp_servers.args AS mcp_servers_args, mcp_servers.env AS mcp_servers_env, mcp_servers.enabled AS mcp_servers_enabled, mcp_servers.created_at AS mcp_servers_created_at, mcp_servers.updated_at AS mcp_servers_updated_at  FROM mcp_servers  WHERE mcp_servers.user_id = %(user_id_1)s AND mcp_servers.enabled IS true",
+          "duration_ms": 1.151332980953157
+        },
+        {
+          "statement": "INSERT INTO messages (session_id, user_id, role, content) VALUES (%(session_id)s, %(user_id)s, %(role)s, %(content)s) RETURNING messages.id, messages.created_at",
+          "duration_ms": 1.2513750116340816
+        },
+        {
+          "statement": "SELECT messages.id, messages.session_id, messages.user_id, messages.role, messages.content, messages.created_at  FROM messages  WHERE messages.id = %(pk_1)s",
+          "duration_ms": 0.7735830149613321
+        }
+      ],
+      "llm_calls_count": 2
+    },
+    {
+      "session_id": "redis_off_session_0_de1fc5",
+      "turn": 2,
+      "prompt": "Why is Redis faster than PostgreSQL?",
+      "is_cold": false,
+      "e2e_latency_ms": 11575.947833014652,
+      "db_query_count": 7,
+      "db_total_query_time_ms": 7.829873007722199,
+      "db_queries": [
+        {
+          "statement": "SELECT sessions.id AS sessions_id, sessions.user_id AS sessions_user_id, sessions.title AS sessions_title, sessions.created_at AS sessions_created_at  FROM sessions  WHERE sessions.id = %(id_1)s   LIMIT %(param_1)s",
+          "duration_ms": 0.5029580206610262
+        },
+        {
+          "statement": "SELECT sessions.id AS sessions_id, sessions.user_id AS sessions_user_id, sessions.title AS sessions_title, sessions.created_at AS sessions_created_at  FROM sessions  WHERE sessions.id = %(id_1)s   LIMIT %(param_1)s",
+          "duration_ms": 0.328666006680578
+        },
+        {
+          "statement": "INSERT INTO messages (session_id, user_id, role, content) VALUES (%(session_id)s, %(user_id)s, %(role)s, %(content)s) RETURNING messages.id, messages.created_at",
+          "duration_ms": 0.48562500160187483
+        },
+        {
+          "statement": "SELECT messages.id, messages.session_id, messages.user_id, messages.role, messages.content, messages.created_at  FROM messages  WHERE messages.id = %(pk_1)s",
+          "duration_ms": 0.4767909995280206
+        },
+        {
+          "statement": "SELECT mcp_servers.id AS mcp_servers_id, mcp_servers.user_id AS mcp_servers_user_id, mcp_servers.name AS mcp_servers_name, mcp_servers.transport AS mcp_servers_transport, mcp_servers.url AS mcp_servers_url, mcp_servers.headers AS mcp_servers_headers, mcp_servers.command AS mcp_servers_command, mcp_servers.args AS mcp_servers_args, mcp_servers.env AS mcp_servers_env, mcp_servers.enabled AS mcp_servers_enabled, mcp_servers.created_at AS mcp_servers_created_at, mcp_servers.updated_at AS mcp_servers_updated_at  FROM mcp_servers  WHERE mcp_servers.user_id = %(user_id_1)s AND mcp_servers.enabled IS true",
+          "duration_ms": 1.566625025589019
+        },
+        {
+          "statement": "INSERT INTO messages (session_id, user_id, role, content) VALUES (%(session_id)s, %(user_id)s, %(role)s, %(content)s) RETURNING messages.id, messages.created_at",
+          "duration_ms": 2.9073329642415047
+        },
+        {
+          "statement": "SELECT messages.id, messages.session_id, messages.user_id, messages.role, messages.content, messages.created_at  FROM messages  WHERE messages.id = %(pk_1)s",
+          "duration_ms": 1.5618749894201756
+        }
+      ],
+      "llm_calls_count": 2
+    },
+    {
+      "session_id": "redis_off_session_0_de1fc5",
+      "turn": 3,
+      "prompt": "Give me a simple example.",
+      "is_cold": false,
+      "e2e_latency_ms": 6806.996540981345,
+      "db_query_count": 7,
+      "db_total_query_time_ms": 9.914248890709132,
+      "db_queries": [
+        {
+          "statement": "SELECT sessions.id AS sessions_id, sessions.user_id AS sessions_user_id, sessions.title AS sessions_title, sessions.created_at AS sessions_created_at  FROM sessions  WHERE sessions.id = %(id_1)s   LIMIT %(param_1)s",
+          "duration_ms": 1.1684999917633832
+        },
+        {
+          "statement": "SELECT sessions.id AS sessions_id, sessions.user_id AS sessions_user_id, sessions.title AS sessions_title, sessions.created_at AS sessions_created_at  FROM sessions  WHERE sessions.id = %(id_1)s   LIMIT %(param_1)s",
+          "duration_ms": 0.6249159923754632
+        },
+        {
+          "statement": "INSERT INTO messages (session_id, user_id, role, content) VALUES (%(session_id)s, %(user_id)s, %(role)s, %(content)s) RETURNING messages.id, messages.created_at",
+          "duration_ms": 1.0195409995503724
+        },
+        {
+          "statement": "SELECT messages.id, messages.session_id, messages.user_id, messages.role, messages.content, messages.created_at  FROM messages  WHERE messages.id = %(pk_1)s",
+          "duration_ms": 0.833208963740617
+        },
+        {
+          "statement": "SELECT mcp_servers.id AS mcp_servers_id, mcp_servers.user_id AS mcp_servers_user_id, mcp_servers.name AS mcp_servers_name, mcp_servers.transport AS mcp_servers_transport, mcp_servers.url AS mcp_servers_url, mcp_servers.headers AS mcp_servers_headers, mcp_servers.command AS mcp_servers_command, mcp_servers.args AS mcp_servers_args, mcp_servers.env AS mcp_servers_env, mcp_servers.enabled AS mcp_servers_enabled, mcp_servers.created_at AS mcp_servers_created_at, mcp_servers.updated_at AS mcp_servers_updated_at  FROM mcp_servers  WHERE mcp_servers.user_id = %(user_id_1)s AND mcp_servers.enabled IS true",
+          "duration_ms": 1.720665954053402
+        },
+        {
+          "statement": "INSERT INTO messages (session_id, user_id, role, content) VALUES (%(session_id)s, %(user_id)s, %(role)s, %(content)s) RETURNING messages.id, messages.created_at",
+          "duration_ms": 2.9195829993113875
+        },
+        {
+          "statement": "SELECT messages.id, messages.session_id, messages.user_id, messages.role, messages.content, messages.created_at  FROM messages  WHERE messages.id = %(pk_1)s",
+          "duration_ms": 1.6278339899145067
+        }
+      ],
+      "llm_calls_count": 2
+    },
+    {
+      "session_id": "redis_off_session_0_de1fc5",
+      "turn": 4,
+      "prompt": "Summarize what you explained.",
+      "is_cold": false,
+      "e2e_latency_ms": 7093.811666010879,
+      "db_query_count": 7,
+      "db_total_query_time_ms": 13.618374126963317,
+      "db_queries": [
+        {
+          "statement": "SELECT sessions.id AS sessions_id, sessions.user_id AS sessions_user_id, sessions.title AS sessions_title, sessions.created_at AS sessions_created_at  FROM sessions  WHERE sessions.id = %(id_1)s   LIMIT %(param_1)s",
+          "duration_ms": 1.6507499967701733
+        },
+        {
+          "statement": "SELECT sessions.id AS sessions_id, sessions.user_id AS sessions_user_id, sessions.title AS sessions_title, sessions.created_at AS sessions_created_at  FROM sessions  WHERE sessions.id = %(id_1)s   LIMIT %(param_1)s",
+          "duration_ms": 0.6423330050893128
+        },
+        {
+          "statement": "INSERT INTO messages (session_id, user_id, role, content) VALUES (%(session_id)s, %(user_id)s, %(role)s, %(content)s) RETURNING messages.id, messages.created_at",
+          "duration_ms": 0.7031250279396772
+        },
+        {
+          "statement": "SELECT messages.id, messages.session_id, messages.user_id, messages.role, messages.content, messages.created_at  FROM messages  WHERE messages.id = %(pk_1)s",
+          "duration_ms": 1.4919160166755319
+        },
+        {
+          "statement": "SELECT mcp_servers.id AS mcp_servers_id, mcp_servers.user_id AS mcp_servers_user_id, mcp_servers.name AS mcp_servers_name, mcp_servers.transport AS mcp_servers_transport, mcp_servers.url AS mcp_servers_url, mcp_servers.headers AS mcp_servers_headers, mcp_servers.command AS mcp_servers_command, mcp_servers.args AS mcp_servers_args, mcp_servers.env AS mcp_servers_env, mcp_servers.enabled AS mcp_servers_enabled, mcp_servers.created_at AS mcp_servers_created_at, mcp_servers.updated_at AS mcp_servers_updated_at  FROM mcp_servers  WHERE mcp_servers.user_id = %(user_id_1)s AND mcp_servers.enabled IS true",
+          "duration_ms": 2.4621670017950237
+        },
+        {
+          "statement": "INSERT INTO messages (session_id, user_id, role, content) VALUES (%(session_id)s, %(user_id)s, %(role)s, %(content)s) RETURNING messages.id, messages.created_at",
+          "duration_ms": 5.275125033222139
+        },
+        {
+          "statement": "SELECT messages.id, messages.session_id, messages.user_id, messages.role, messages.content, messages.created_at  FROM messages  WHERE messages.id = %(pk_1)s",
+          "duration_ms": 1.3929580454714596
+        }
+      ],
+      "llm_calls_count": 2
+    },
+    {
+      "session_id": "redis_off_session_1_c0ab3f",
+      "turn": 1,
+      "prompt": "Explain what is Redis.",
+      "is_cold": true,
+      "e2e_latency_ms": 10536.840084008873,
+      "db_query_count": 9,
+      "db_total_query_time_ms": 11.731458944268525,
+      "db_queries": [
+        {
+          "statement": "SELECT sessions.id AS sessions_id, sessions.user_id AS sessions_user_id, sessions.title AS sessions_title, sessions.created_at AS sessions_created_at  FROM sessions  WHERE sessions.id = %(id_1)s   LIMIT %(param_1)s",
+          "duration_ms": 1.410541997756809
+        },
+        {
+          "statement": "INSERT INTO sessions (id, user_id, title) VALUES (%(id)s, %(user_id)s, %(title)s) RETURNING sessions.created_at",
+          "duration_ms": 1.860917021986097
+        },
+        {
+          "statement": "SELECT sessions.id AS sessions_id, sessions.user_id AS sessions_user_id, sessions.title AS sessions_title, sessions.created_at AS sessions_created_at  FROM sessions  WHERE sessions.id = %(id_1)s   LIMIT %(param_1)s",
+          "duration_ms": 0.8798750350251794
+        },
+        {
+          "statement": "UPDATE sessions SET title=%(title)s WHERE sessions.id = %(sessions_id)s",
+          "duration_ms": 1.463332970160991
+        },
+        {
+          "statement": "INSERT INTO messages (session_id, user_id, role, content) VALUES (%(session_id)s, %(user_id)s, %(role)s, %(content)s) RETURNING messages.id, messages.created_at",
+          "duration_ms": 1.1295839794911444
+        },
+        {
+          "statement": "SELECT messages.id, messages.session_id, messages.user_id, messages.role, messages.content, messages.created_at  FROM messages  WHERE messages.id = %(pk_1)s",
+          "duration_ms": 0.8054999634623528
+        },
+        {
+          "statement": "SELECT mcp_servers.id AS mcp_servers_id, mcp_servers.user_id AS mcp_servers_user_id, mcp_servers.name AS mcp_servers_name, mcp_servers.transport AS mcp_servers_transport, mcp_servers.url AS mcp_servers_url, mcp_servers.headers AS mcp_servers_headers, mcp_servers.command AS mcp_servers_command, mcp_servers.args AS mcp_servers_args, mcp_servers.env AS mcp_servers_env, mcp_servers.enabled AS mcp_servers_enabled, mcp_servers.created_at AS mcp_servers_created_at, mcp_servers.updated_at AS mcp_servers_updated_at  FROM mcp_servers  WHERE mcp_servers.user_id = %(user_id_1)s AND mcp_servers.enabled IS true",
+          "duration_ms": 0.6391250062733889
+        },
+        {
+          "statement": "INSERT INTO messages (session_id, user_id, role, content) VALUES (%(session_id)s, %(user_id)s, %(role)s, %(content)s) RETURNING messages.id, messages.created_at",
+          "duration_ms": 2.582249988336116
+        },
+        {
+          "statement": "SELECT messages.id, messages.session_id, messages.user_id, messages.role, messages.content, messages.created_at  FROM messages  WHERE messages.id = %(pk_1)s",
+          "duration_ms": 0.9603329817764461
+        }
+      ],
+      "llm_calls_count": 2
+    },
+    {
+      "session_id": "redis_off_session_1_c0ab3f",
+      "turn": 2,
+      "prompt": "Why is Redis faster than PostgreSQL?",
+      "is_cold": false,
+      "e2e_latency_ms": 11200.08808397688,
+      "db_query_count": 7,
+      "db_total_query_time_ms": 8.317499014083296,
+      "db_queries": [
+        {
+          "statement": "SELECT sessions.id AS sessions_id, sessions.user_id AS sessions_user_id, sessions.title AS sessions_title, sessions.created_at AS sessions_created_at  FROM sessions  WHERE sessions.id = %(id_1)s   LIMIT %(param_1)s",
+          "duration_ms": 0.8316249586641788
+        },
+        {
+          "statement": "SELECT sessions.id AS sessions_id, sessions.user_id AS sessions_user_id, sessions.title AS sessions_title, sessions.created_at AS sessions_created_at  FROM sessions  WHERE sessions.id = %(id_1)s   LIMIT %(param_1)s",
+          "duration_ms": 0.5001660319976509
+        },
+        {
+          "statement": "INSERT INTO messages (session_id, user_id, role, content) VALUES (%(session_id)s, %(user_id)s, %(role)s, %(content)s) RETURNING messages.id, messages.created_at",
+          "duration_ms": 0.733290973585099
+        },
+        {
+          "statement": "SELECT messages.id, messages.session_id, messages.user_id, messages.role, messages.content, messages.created_at  FROM messages  WHERE messages.id = %(pk_1)s",
+          "duration_ms": 0.9158750181086361
+        },
+        {
+          "statement": "SELECT mcp_servers.id AS mcp_servers_id, mcp_servers.user_id AS mcp_servers_user_id, mcp_servers.name AS mcp_servers_name, mcp_servers.transport AS mcp_servers_transport, mcp_servers.url AS mcp_servers_url, mcp_servers.headers AS mcp_servers_headers, mcp_servers.command AS mcp_servers_command, mcp_servers.args AS mcp_servers_args, mcp_servers.env AS mcp_servers_env, mcp_servers.enabled AS mcp_servers_enabled, mcp_servers.created_at AS mcp_servers_created_at, mcp_servers.updated_at AS mcp_servers_updated_at  FROM mcp_servers  WHERE mcp_servers.user_id = %(user_id_1)s AND mcp_servers.enabled IS true",
+          "duration_ms": 0.6415420211851597
+        },
+        {
+          "statement": "INSERT INTO messages (session_id, user_id, role, content) VALUES (%(session_id)s, %(user_id)s, %(role)s, %(content)s) RETURNING messages.id, messages.created_at",
+          "duration_ms": 3.599249990656972
+        },
+        {
+          "statement": "SELECT messages.id, messages.session_id, messages.user_id, messages.role, messages.content, messages.created_at  FROM messages  WHERE messages.id = %(pk_1)s",
+          "duration_ms": 1.0957500198855996
+        }
+      ],
+      "llm_calls_count": 2
+    },
+    {
+      "session_id": "redis_off_session_1_c0ab3f",
+      "turn": 3,
+      "prompt": "Give me a simple example.",
+      "is_cold": false,
+      "e2e_latency_ms": 7136.214624973945,
+      "db_query_count": 7,
+      "db_total_query_time_ms": 7.356168003752828,
+      "db_queries": [
+        {
+          "statement": "SELECT sessions.id AS sessions_id, sessions.user_id AS sessions_user_id, sessions.title AS sessions_title, sessions.created_at AS sessions_created_at  FROM sessions  WHERE sessions.id = %(id_1)s   LIMIT %(param_1)s",
+          "duration_ms": 0.8506670128554106
+        },
+        {
+          "statement": "SELECT sessions.id AS sessions_id, sessions.user_id AS sessions_user_id, sessions.title AS sessions_title, sessions.created_at AS sessions_created_at  FROM sessions  WHERE sessions.id = %(id_1)s   LIMIT %(param_1)s",
+          "duration_ms": 0.4610420437529683
+        },
+        {
+          "statement": "INSERT INTO messages (session_id, user_id, role, content) VALUES (%(session_id)s, %(user_id)s, %(role)s, %(content)s) RETURNING messages.id, messages.created_at",
+          "duration_ms": 0.6358330138027668
+        },
+        {
+          "statement": "SELECT messages.id, messages.session_id, messages.user_id, messages.role, messages.content, messages.created_at  FROM messages  WHERE messages.id = %(pk_1)s",
+          "duration_ms": 0.7774169789627194
+        },
+        {
+          "statement": "SELECT mcp_servers.id AS mcp_servers_id, mcp_servers.user_id AS mcp_servers_user_id, mcp_servers.name AS mcp_servers_name, mcp_servers.transport AS mcp_servers_transport, mcp_servers.url AS mcp_servers_url, mcp_servers.headers AS mcp_servers_headers, mcp_servers.command AS mcp_servers_command, mcp_servers.args AS mcp_servers_args, mcp_servers.env AS mcp_servers_env, mcp_servers.enabled AS mcp_servers_enabled, mcp_servers.created_at AS mcp_servers_created_at, mcp_servers.updated_at AS mcp_servers_updated_at  FROM mcp_servers  WHERE mcp_servers.user_id = %(user_id_1)s AND mcp_servers.enabled IS true",
+          "duration_ms": 1.2845839955843985
+        },
+        {
+          "statement": "INSERT INTO messages (session_id, user_id, role, content) VALUES (%(session_id)s, %(user_id)s, %(role)s, %(content)s) RETURNING messages.id, messages.created_at",
+          "duration_ms": 2.153207955416292
+        },
+        {
+          "statement": "SELECT messages.id, messages.session_id, messages.user_id, messages.role, messages.content, messages.created_at  FROM messages  WHERE messages.id = %(pk_1)s",
+          "duration_ms": 1.193417003378272
+        }
+      ],
+      "llm_calls_count": 2
+    },
+    {
+      "session_id": "redis_off_session_1_c0ab3f",
+      "turn": 4,
+      "prompt": "Summarize what you explained.",
+      "is_cold": false,
+      "e2e_latency_ms": 5760.007708973717,
+      "db_query_count": 7,
+      "db_total_query_time_ms": 5.197415011934936,
+      "db_queries": [
+        {
+          "statement": "SELECT sessions.id AS sessions_id, sessions.user_id AS sessions_user_id, sessions.title AS sessions_title, sessions.created_at AS sessions_created_at  FROM sessions  WHERE sessions.id = %(id_1)s   LIMIT %(param_1)s",
+          "duration_ms": 0.9609169792383909
+        },
+        {
+          "statement": "SELECT sessions.id AS sessions_id, sessions.user_id AS sessions_user_id, sessions.title AS sessions_title, sessions.created_at AS sessions_created_at  FROM sessions  WHERE sessions.id = %(id_1)s   LIMIT %(param_1)s",
+          "duration_ms": 0.46508299419656396
+        },
+        {
+          "statement": "INSERT INTO messages (session_id, user_id, role, content) VALUES (%(session_id)s, %(user_id)s, %(role)s, %(content)s) RETURNING messages.id, messages.created_at",
+          "duration_ms": 0.7619159878231585
+        },
+        {
+          "statement": "SELECT messages.id, messages.session_id, messages.user_id, messages.role, messages.content, messages.created_at  FROM messages  WHERE messages.id = %(pk_1)s",
+          "duration_ms": 0.8623329922556877
+        },
+        {
+          "statement": "SELECT mcp_servers.id AS mcp_servers_id, mcp_servers.user_id AS mcp_servers_user_id, mcp_servers.name AS mcp_servers_name, mcp_servers.transport AS mcp_servers_transport, mcp_servers.url AS mcp_servers_url, mcp_servers.headers AS mcp_servers_headers, mcp_servers.command AS mcp_servers_command, mcp_servers.args AS mcp_servers_args, mcp_servers.env AS mcp_servers_env, mcp_servers.enabled AS mcp_servers_enabled, mcp_servers.created_at AS mcp_servers_created_at, mcp_servers.updated_at AS mcp_servers_updated_at  FROM mcp_servers  WHERE mcp_servers.user_id = %(user_id_1)s AND mcp_servers.enabled IS true",
+          "duration_ms": 1.0058330371975899
+        },
+        {
+          "statement": "INSERT INTO messages (session_id, user_id, role, content) VALUES (%(session_id)s, %(user_id)s, %(role)s, %(content)s) RETURNING messages.id, messages.created_at",
+          "duration_ms": 0.7510000141337514
+        },
+        {
+          "statement": "SELECT messages.id, messages.session_id, messages.user_id, messages.role, messages.content, messages.created_at  FROM messages  WHERE messages.id = %(pk_1)s",
+          "duration_ms": 0.3903330070897937
+        }
+      ],
+      "llm_calls_count": 2
+    },
+    {
+      "session_id": "redis_off_session_2_9b9b8b",
+      "turn": 1,
+      "prompt": "Explain what is Redis.",
+      "is_cold": true,
+      "e2e_latency_ms": 11058.89174999902,
+      "db_query_count": 9,
+      "db_total_query_time_ms": 4.5248331152834,
+      "db_queries": [
+        {
+          "statement": "SELECT sessions.id AS sessions_id, sessions.user_id AS sessions_user_id, sessions.title AS sessions_title, sessions.created_at AS sessions_created_at  FROM sessions  WHERE sessions.id = %(id_1)s   LIMIT %(param_1)s",
+          "duration_ms": 0.31712499912828207
+        },
+        {
+          "statement": "INSERT INTO sessions (id, user_id, title) VALUES (%(id)s, %(user_id)s, %(title)s) RETURNING sessions.created_at",
+          "duration_ms": 0.16804097685962915
+        },
+        {
+          "statement": "SELECT sessions.id AS sessions_id, sessions.user_id AS sessions_user_id, sessions.title AS sessions_title, sessions.created_at AS sessions_created_at  FROM sessions  WHERE sessions.id = %(id_1)s   LIMIT %(param_1)s",
+          "duration_ms": 0.2719170297496021
+        },
+        {
+          "statement": "UPDATE sessions SET title=%(title)s WHERE sessions.id = %(sessions_id)s",
+          "duration_ms": 0.19362499006092548
+        },
+        {
+          "statement": "INSERT INTO messages (session_id, user_id, role, content) VALUES (%(session_id)s, %(user_id)s, %(role)s, %(content)s) RETURNING messages.id, messages.created_at",
+          "duration_ms": 0.16616703942418098
+        },
+        {
+          "statement": "SELECT messages.id, messages.session_id, messages.user_id, messages.role, messages.content, messages.created_at  FROM messages  WHERE messages.id = %(pk_1)s",
+          "duration_ms": 0.27312501333653927
+        },
+        {
+          "statement": "SELECT mcp_servers.id AS mcp_servers_id, mcp_servers.user_id AS mcp_servers_user_id, mcp_servers.name AS mcp_servers_name, mcp_servers.transport AS mcp_servers_transport, mcp_servers.url AS mcp_servers_url, mcp_servers.headers AS mcp_servers_headers, mcp_servers.command AS mcp_servers_command, mcp_servers.args AS mcp_servers_args, mcp_servers.env AS mcp_servers_env, mcp_servers.enabled AS mcp_servers_enabled, mcp_servers.created_at AS mcp_servers_created_at, mcp_servers.updated_at AS mcp_servers_updated_at  FROM mcp_servers  WHERE mcp_servers.user_id = %(user_id_1)s AND mcp_servers.enabled IS true",
+          "duration_ms": 1.054000051226467
+        },
+        {
+          "statement": "INSERT INTO messages (session_id, user_id, role, content) VALUES (%(session_id)s, %(user_id)s, %(role)s, %(content)s) RETURNING messages.id, messages.created_at",
+          "duration_ms": 1.488708017859608
+        },
+        {
+          "statement": "SELECT messages.id, messages.session_id, messages.user_id, messages.role, messages.content, messages.created_at  FROM messages  WHERE messages.id = %(pk_1)s",
+          "duration_ms": 0.592124997638166
+        }
+      ],
+      "llm_calls_count": 2
+    },
+    {
+      "session_id": "redis_off_session_2_9b9b8b",
+      "turn": 2,
+      "prompt": "Why is Redis faster than PostgreSQL?",
+      "is_cold": false,
+      "e2e_latency_ms": 13051.238666987047,
+      "db_query_count": 7,
+      "db_total_query_time_ms": 8.515957102645189,
+      "db_queries": [
+        {
+          "statement": "SELECT sessions.id AS sessions_id, sessions.user_id AS sessions_user_id, sessions.title AS sessions_title, sessions.created_at AS sessions_created_at  FROM sessions  WHERE sessions.id = %(id_1)s   LIMIT %(param_1)s",
+          "duration_ms": 0.4148330190218985
+        },
+        {
+          "statement": "SELECT sessions.id AS sessions_id, sessions.user_id AS sessions_user_id, sessions.title AS sessions_title, sessions.created_at AS sessions_created_at  FROM sessions  WHERE sessions.id = %(id_1)s   LIMIT %(param_1)s",
+          "duration_ms": 0.22137502674013376
+        },
+        {
+          "statement": "INSERT INTO messages (session_id, user_id, role, content) VALUES (%(session_id)s, %(user_id)s, %(role)s, %(content)s) RETURNING messages.id, messages.created_at",
+          "duration_ms": 0.26350002735853195
+        },
+        {
+          "statement": "SELECT messages.id, messages.session_id, messages.user_id, messages.role, messages.content, messages.created_at  FROM messages  WHERE messages.id = %(pk_1)s",
+          "duration_ms": 0.34195801708847284
+        },
+        {
+          "statement": "SELECT mcp_servers.id AS mcp_servers_id, mcp_servers.user_id AS mcp_servers_user_id, mcp_servers.name AS mcp_servers_name, mcp_servers.transport AS mcp_servers_transport, mcp_servers.url AS mcp_servers_url, mcp_servers.headers AS mcp_servers_headers, mcp_servers.command AS mcp_servers_command, mcp_servers.args AS mcp_servers_args, mcp_servers.env AS mcp_servers_env, mcp_servers.enabled AS mcp_servers_enabled, mcp_servers.created_at AS mcp_servers_created_at, mcp_servers.updated_at AS mcp_servers_updated_at  FROM mcp_servers  WHERE mcp_servers.user_id = %(user_id_1)s AND mcp_servers.enabled IS true",
+          "duration_ms": 1.439916028175503
+        },
+        {
+          "statement": "INSERT INTO messages (session_id, user_id, role, content) VALUES (%(session_id)s, %(user_id)s, %(role)s, %(content)s) RETURNING messages.id, messages.created_at",
+          "duration_ms": 4.477582988329232
+        },
+        {
+          "statement": "SELECT messages.id, messages.session_id, messages.user_id, messages.role, messages.content, messages.created_at  FROM messages  WHERE messages.id = %(pk_1)s",
+          "duration_ms": 1.3567919959314167
+        }
+      ],
+      "llm_calls_count": 2
+    },
+    {
+      "session_id": "redis_off_session_2_9b9b8b",
+      "turn": 3,
+      "prompt": "Give me a simple example.",
+      "is_cold": false,
+      "e2e_latency_ms": 9970.350499963388,
+      "db_query_count": 7,
+      "db_total_query_time_ms": 8.941500913351774,
+      "db_queries": [
+        {
+          "statement": "SELECT sessions.id AS sessions_id, sessions.user_id AS sessions_user_id, sessions.title AS sessions_title, sessions.created_at AS sessions_created_at  FROM sessions  WHERE sessions.id = %(id_1)s   LIMIT %(param_1)s",
+          "duration_ms": 1.2298750225454569
+        },
+        {
+          "statement": "SELECT sessions.id AS sessions_id, sessions.user_id AS sessions_user_id, sessions.title AS sessions_title, sessions.created_at AS sessions_created_at  FROM sessions  WHERE sessions.id = %(id_1)s   LIMIT %(param_1)s",
+          "duration_ms": 0.6338749662972987
+        },
+        {
+          "statement": "INSERT INTO messages (session_id, user_id, role, content) VALUES (%(session_id)s, %(user_id)s, %(role)s, %(content)s) RETURNING messages.id, messages.created_at",
+          "duration_ms": 0.8419579826295376
+        },
+        {
+          "statement": "SELECT messages.id, messages.session_id, messages.user_id, messages.role, messages.content, messages.created_at  FROM messages  WHERE messages.id = %(pk_1)s",
+          "duration_ms": 0.7935419562272727
+        },
+        {
+          "statement": "SELECT mcp_servers.id AS mcp_servers_id, mcp_servers.user_id AS mcp_servers_user_id, mcp_servers.name AS mcp_servers_name, mcp_servers.transport AS mcp_servers_transport, mcp_servers.url AS mcp_servers_url, mcp_servers.headers AS mcp_servers_headers, mcp_servers.command AS mcp_servers_command, mcp_servers.args AS mcp_servers_args, mcp_servers.env AS mcp_servers_env, mcp_servers.enabled AS mcp_servers_enabled, mcp_servers.created_at AS mcp_servers_created_at, mcp_servers.updated_at AS mcp_servers_updated_at  FROM mcp_servers  WHERE mcp_servers.user_id = %(user_id_1)s AND mcp_servers.enabled IS true",
+          "duration_ms": 1.424583955667913
+        },
+        {
+          "statement": "INSERT INTO messages (session_id, user_id, role, content) VALUES (%(session_id)s, %(user_id)s, %(role)s, %(content)s) RETURNING messages.id, messages.created_at",
+          "duration_ms": 2.764625009149313
+        },
+        {
+          "statement": "SELECT messages.id, messages.session_id, messages.user_id, messages.role, messages.content, messages.created_at  FROM messages  WHERE messages.id = %(pk_1)s",
+          "duration_ms": 1.2530420208349824
+        }
+      ],
+      "llm_calls_count": 2
+    },
+    {
+      "session_id": "redis_off_session_2_9b9b8b",
+      "turn": 4,
+      "prompt": "Summarize what you explained.",
+      "is_cold": false,
+      "e2e_latency_ms": 6567.755082971416,
+      "db_query_count": 7,
+      "db_total_query_time_ms": 8.117957040667534,
+      "db_queries": [
+        {
+          "statement": "SELECT sessions.id AS sessions_id, sessions.user_id AS sessions_user_id, sessions.title AS sessions_title, sessions.created_at AS sessions_created_at  FROM sessions  WHERE sessions.id = %(id_1)s   LIMIT %(param_1)s",
+          "duration_ms": 1.0651660268194973
+        },
+        {
+          "statement": "SELECT sessions.id AS sessions_id, sessions.user_id AS sessions_user_id, sessions.title AS sessions_title, sessions.created_at AS sessions_created_at  FROM sessions  WHERE sessions.id = %(id_1)s   LIMIT %(param_1)s",
+          "duration_ms": 0.5065000150352716
+        },
+        {
+          "statement": "INSERT INTO messages (session_id, user_id, role, content) VALUES (%(session_id)s, %(user_id)s, %(role)s, %(content)s) RETURNING messages.id, messages.created_at",
+          "duration_ms": 0.743083015549928
+        },
+        {
+          "statement": "SELECT messages.id, messages.session_id, messages.user_id, messages.role, messages.content, messages.created_at  FROM messages  WHERE messages.id = %(pk_1)s",
+          "duration_ms": 0.8707499946467578
+        },
+        {
+          "statement": "SELECT mcp_servers.id AS mcp_servers_id, mcp_servers.user_id AS mcp_servers_user_id, mcp_servers.name AS mcp_servers_name, mcp_servers.transport AS mcp_servers_transport, mcp_servers.url AS mcp_servers_url, mcp_servers.headers AS mcp_servers_headers, mcp_servers.command AS mcp_servers_command, mcp_servers.args AS mcp_servers_args, mcp_servers.env AS mcp_servers_env, mcp_servers.enabled AS mcp_servers_enabled, mcp_servers.created_at AS mcp_servers_created_at, mcp_servers.updated_at AS mcp_servers_updated_at  FROM mcp_servers  WHERE mcp_servers.user_id = %(user_id_1)s AND mcp_servers.enabled IS true",
+          "duration_ms": 1.2582080089487135
+        },
+        {
+          "statement": "INSERT INTO messages (session_id, user_id, role, content) VALUES (%(session_id)s, %(user_id)s, %(role)s, %(content)s) RETURNING messages.id, messages.created_at",
+          "duration_ms": 2.513499988708645
+        },
+        {
+          "statement": "SELECT messages.id, messages.session_id, messages.user_id, messages.role, messages.content, messages.created_at  FROM messages  WHERE messages.id = %(pk_1)s",
+          "duration_ms": 1.1607499909587204
+        }
+      ],
+      "llm_calls_count": 2
+    },
+    {
+      "session_id": "redis_off_session_3_990e55",
+      "turn": 1,
+      "prompt": "Explain what is Redis.",
+      "is_cold": true,
+      "e2e_latency_ms": 11026.068334002048,
+      "db_query_count": 9,
+      "db_total_query_time_ms": 8.515041961800307,
+      "db_queries": [
+        {
+          "statement": "SELECT sessions.id AS sessions_id, sessions.user_id AS sessions_user_id, sessions.title AS sessions_title, sessions.created_at AS sessions_created_at  FROM sessions  WHERE sessions.id = %(id_1)s   LIMIT %(param_1)s",
+          "duration_ms": 1.0346670169383287
+        },
+        {
+          "statement": "INSERT INTO sessions (id, user_id, title) VALUES (%(id)s, %(user_id)s, %(title)s) RETURNING sessions.created_at",
+          "duration_ms": 0.7543750107288361
+        },
+        {
+          "statement": "SELECT sessions.id AS sessions_id, sessions.user_id AS sessions_user_id, sessions.title AS sessions_title, sessions.created_at AS sessions_created_at  FROM sessions  WHERE sessions.id = %(id_1)s   LIMIT %(param_1)s",
+          "duration_ms": 0.8753750007599592
+        },
+        {
+          "statement": "UPDATE sessions SET title=%(title)s WHERE sessions.id = %(sessions_id)s",
+          "duration_ms": 0.638832978438586
+        },
+        {
+          "statement": "INSERT INTO messages (session_id, user_id, role, content) VALUES (%(session_id)s, %(user_id)s, %(role)s, %(content)s) RETURNING messages.id, messages.created_at",
+          "duration_ms": 0.4945829859934747
+        },
+        {
+          "statement": "SELECT messages.id, messages.session_id, messages.user_id, messages.role, messages.content, messages.created_at  FROM messages  WHERE messages.id = %(pk_1)s",
+          "duration_ms": 0.6045420304872096
+        },
+        {
+          "statement": "SELECT mcp_servers.id AS mcp_servers_id, mcp_servers.user_id AS mcp_servers_user_id, mcp_servers.name AS mcp_servers_name, mcp_servers.transport AS mcp_servers_transport, mcp_servers.url AS mcp_servers_url, mcp_servers.headers AS mcp_servers_headers, mcp_servers.command AS mcp_servers_command, mcp_servers.args AS mcp_servers_args, mcp_servers.env AS mcp_servers_env, mcp_servers.enabled AS mcp_servers_enabled, mcp_servers.created_at AS mcp_servers_created_at, mcp_servers.updated_at AS mcp_servers_updated_at  FROM mcp_servers  WHERE mcp_servers.user_id = %(user_id_1)s AND mcp_servers.enabled IS true",
+          "duration_ms": 0.6958749727346003
+        },
+        {
+          "statement": "INSERT INTO messages (session_id, user_id, role, content) VALUES (%(session_id)s, %(user_id)s, %(role)s, %(content)s) RETURNING messages.id, messages.created_at",
+          "duration_ms": 2.857249986846
+        },
+        {
+          "statement": "SELECT messages.id, messages.session_id, messages.user_id, messages.role, messages.content, messages.created_at  FROM messages  WHERE messages.id = %(pk_1)s",
+          "duration_ms": 0.5595419788733125
+        }
+      ],
+      "llm_calls_count": 2
+    },
+    {
+      "session_id": "redis_off_session_3_990e55",
+      "turn": 2,
+      "prompt": "Why is Redis faster than PostgreSQL?",
+      "is_cold": false,
+      "e2e_latency_ms": 12378.63870797446,
+      "db_query_count": 7,
+      "db_total_query_time_ms": 5.487999878823757,
+      "db_queries": [
+        {
+          "statement": "SELECT sessions.id AS sessions_id, sessions.user_id AS sessions_user_id, sessions.title AS sessions_title, sessions.created_at AS sessions_created_at  FROM sessions  WHERE sessions.id = %(id_1)s   LIMIT %(param_1)s",
+          "duration_ms": 0.37412496749311686
+        },
+        {
+          "statement": "SELECT sessions.id AS sessions_id, sessions.user_id AS sessions_user_id, sessions.title AS sessions_title, sessions.created_at AS sessions_created_at  FROM sessions  WHERE sessions.id = %(id_1)s   LIMIT %(param_1)s",
+          "duration_ms": 0.2096669632010162
+        },
+        {
+          "statement": "INSERT INTO messages (session_id, user_id, role, content) VALUES (%(session_id)s, %(user_id)s, %(role)s, %(content)s) RETURNING messages.id, messages.created_at",
+          "duration_ms": 0.38837495958432555
+        },
+        {
+          "statement": "SELECT messages.id, messages.session_id, messages.user_id, messages.role, messages.content, messages.created_at  FROM messages  WHERE messages.id = %(pk_1)s",
+          "duration_ms": 0.33237499883398414
+        },
+        {
+          "statement": "SELECT mcp_servers.id AS mcp_servers_id, mcp_servers.user_id AS mcp_servers_user_id, mcp_servers.name AS mcp_servers_name, mcp_servers.transport AS mcp_servers_transport, mcp_servers.url AS mcp_servers_url, mcp_servers.headers AS mcp_servers_headers, mcp_servers.command AS mcp_servers_command, mcp_servers.args AS mcp_servers_args, mcp_servers.env AS mcp_servers_env, mcp_servers.enabled AS mcp_servers_enabled, mcp_servers.created_at AS mcp_servers_created_at, mcp_servers.updated_at AS mcp_servers_updated_at  FROM mcp_servers  WHERE mcp_servers.user_id = %(user_id_1)s AND mcp_servers.enabled IS true",
+          "duration_ms": 0.9670829749666154
+        },
+        {
+          "statement": "INSERT INTO messages (session_id, user_id, role, content) VALUES (%(session_id)s, %(user_id)s, %(role)s, %(content)s) RETURNING messages.id, messages.created_at",
+          "duration_ms": 2.226458047516644
+        },
+        {
+          "statement": "SELECT messages.id, messages.session_id, messages.user_id, messages.role, messages.content, messages.created_at  FROM messages  WHERE messages.id = %(pk_1)s",
+          "duration_ms": 0.989916967228055
+        }
+      ],
+      "llm_calls_count": 2
+    },
+    {
+      "session_id": "redis_off_session_3_990e55",
+      "turn": 3,
+      "prompt": "Give me a simple example.",
+      "is_cold": false,
+      "e2e_latency_ms": 7376.66862498736,
+      "db_query_count": 7,
+      "db_total_query_time_ms": 7.006875064689666,
+      "db_queries": [
+        {
+          "statement": "SELECT sessions.id AS sessions_id, sessions.user_id AS sessions_user_id, sessions.title AS sessions_title, sessions.created_at AS sessions_created_at  FROM sessions  WHERE sessions.id = %(id_1)s   LIMIT %(param_1)s",
+          "duration_ms": 1.0159170487895608
+        },
+        {
+          "statement": "SELECT sessions.id AS sessions_id, sessions.user_id AS sessions_user_id, sessions.title AS sessions_title, sessions.created_at AS sessions_created_at  FROM sessions  WHERE sessions.id = %(id_1)s   LIMIT %(param_1)s",
+          "duration_ms": 0.49058295553550124
+        },
+        {
+          "statement": "INSERT INTO messages (session_id, user_id, role, content) VALUES (%(session_id)s, %(user_id)s, %(role)s, %(content)s) RETURNING messages.id, messages.created_at",
+          "duration_ms": 0.6279160152189434
+        },
+        {
+          "statement": "SELECT messages.id, messages.session_id, messages.user_id, messages.role, messages.content, messages.created_at  FROM messages  WHERE messages.id = %(pk_1)s",
+          "duration_ms": 0.8622920140624046
+        },
+        {
+          "statement": "SELECT mcp_servers.id AS mcp_servers_id, mcp_servers.user_id AS mcp_servers_user_id, mcp_servers.name AS mcp_servers_name, mcp_servers.transport AS mcp_servers_transport, mcp_servers.url AS mcp_servers_url, mcp_servers.headers AS mcp_servers_headers, mcp_servers.command AS mcp_servers_command, mcp_servers.args AS mcp_servers_args, mcp_servers.env AS mcp_servers_env, mcp_servers.enabled AS mcp_servers_enabled, mcp_servers.created_at AS mcp_servers_created_at, mcp_servers.updated_at AS mcp_servers_updated_at  FROM mcp_servers  WHERE mcp_servers.user_id = %(user_id_1)s AND mcp_servers.enabled IS true",
+          "duration_ms": 1.1186670162715018
+        },
+        {
+          "statement": "INSERT INTO messages (session_id, user_id, role, content) VALUES (%(session_id)s, %(user_id)s, %(role)s, %(content)s) RETURNING messages.id, messages.created_at",
+          "duration_ms": 1.8384999711997807
+        },
+        {
+          "statement": "SELECT messages.id, messages.session_id, messages.user_id, messages.role, messages.content, messages.created_at  FROM messages  WHERE messages.id = %(pk_1)s",
+          "duration_ms": 1.0530000436119735
+        }
+      ],
+      "llm_calls_count": 2
+    },
+    {
+      "session_id": "redis_off_session_3_990e55",
+      "turn": 4,
+      "prompt": "Summarize what you explained.",
+      "is_cold": false,
+      "e2e_latency_ms": 6485.948792018462,
+      "db_query_count": 7,
+      "db_total_query_time_ms": 7.252083043567836,
+      "db_queries": [
+        {
+          "statement": "SELECT sessions.id AS sessions_id, sessions.user_id AS sessions_user_id, sessions.title AS sessions_title, sessions.created_at AS sessions_created_at  FROM sessions  WHERE sessions.id = %(id_1)s   LIMIT %(param_1)s",
+          "duration_ms": 0.8445829735137522
+        },
+        {
+          "statement": "SELECT sessions.id AS sessions_id, sessions.user_id AS sessions_user_id, sessions.title AS sessions_title, sessions.created_at AS sessions_created_at  FROM sessions  WHERE sessions.id = %(id_1)s   LIMIT %(param_1)s",
+          "duration_ms": 0.46487501822412014
+        },
+        {
+          "statement": "INSERT INTO messages (session_id, user_id, role, content) VALUES (%(session_id)s, %(user_id)s, %(role)s, %(content)s) RETURNING messages.id, messages.created_at",
+          "duration_ms": 0.5707080126740038
+        },
+        {
+          "statement": "SELECT messages.id, messages.session_id, messages.user_id, messages.role, messages.content, messages.created_at  FROM messages  WHERE messages.id = %(pk_1)s",
+          "duration_ms": 0.8932080236263573
+        },
+        {
+          "statement": "SELECT mcp_servers.id AS mcp_servers_id, mcp_servers.user_id AS mcp_servers_user_id, mcp_servers.name AS mcp_servers_name, mcp_servers.transport AS mcp_servers_transport, mcp_servers.url AS mcp_servers_url, mcp_servers.headers AS mcp_servers_headers, mcp_servers.command AS mcp_servers_command, mcp_servers.args AS mcp_servers_args, mcp_servers.env AS mcp_servers_env, mcp_servers.enabled AS mcp_servers_enabled, mcp_servers.created_at AS mcp_servers_created_at, mcp_servers.updated_at AS mcp_servers_updated_at  FROM mcp_servers  WHERE mcp_servers.user_id = %(user_id_1)s AND mcp_servers.enabled IS true",
+          "duration_ms": 1.0797090362757444
+        },
+        {
+          "statement": "INSERT INTO messages (session_id, user_id, role, content) VALUES (%(session_id)s, %(user_id)s, %(role)s, %(content)s) RETURNING messages.id, messages.created_at",
+          "duration_ms": 2.0286249928176403
+        },
+        {
+          "statement": "SELECT messages.id, messages.session_id, messages.user_id, messages.role, messages.content, messages.created_at  FROM messages  WHERE messages.id = %(pk_1)s",
+          "duration_ms": 1.370374986436218
+        }
+      ],
+      "llm_calls_count": 2
+    },
+    {
+      "session_id": "redis_off_session_4_8dc8da",
+      "turn": 1,
+      "prompt": "Explain what is Redis.",
+      "is_cold": true,
+      "e2e_latency_ms": 12194.669333985075,
+      "db_query_count": 9,
+      "db_total_query_time_ms": 8.910248114261776,
+      "db_queries": [
+        {
+          "statement": "SELECT sessions.id AS sessions_id, sessions.user_id AS sessions_user_id, sessions.title AS sessions_title, sessions.created_at AS sessions_created_at  FROM sessions  WHERE sessions.id = %(id_1)s   LIMIT %(param_1)s",
+          "duration_ms": 0.8803330129012465
+        },
+        {
+          "statement": "INSERT INTO sessions (id, user_id, title) VALUES (%(id)s, %(user_id)s, %(title)s) RETURNING sessions.created_at",
+          "duration_ms": 0.7346250349655747
+        },
+        {
+          "statement": "SELECT sessions.id AS sessions_id, sessions.user_id AS sessions_user_id, sessions.title AS sessions_title, sessions.created_at AS sessions_created_at  FROM sessions  WHERE sessions.id = %(id_1)s   LIMIT %(param_1)s",
+          "duration_ms": 0.768458005040884
+        },
+        {
+          "statement": "UPDATE sessions SET title=%(title)s WHERE sessions.id = %(sessions_id)s",
+          "duration_ms": 0.4747909842990339
+        },
+        {
+          "statement": "INSERT INTO messages (session_id, user_id, role, content) VALUES (%(session_id)s, %(user_id)s, %(role)s, %(content)s) RETURNING messages.id, messages.created_at",
+          "duration_ms": 0.4740420263260603
+        },
+        {
+          "statement": "SELECT messages.id, messages.session_id, messages.user_id, messages.role, messages.content, messages.created_at  FROM messages  WHERE messages.id = %(pk_1)s",
+          "duration_ms": 0.6516660214401782
+        },
+        {
+          "statement": "SELECT mcp_servers.id AS mcp_servers_id, mcp_servers.user_id AS mcp_servers_user_id, mcp_servers.name AS mcp_servers_name, mcp_servers.transport AS mcp_servers_transport, mcp_servers.url AS mcp_servers_url, mcp_servers.headers AS mcp_servers_headers, mcp_servers.command AS mcp_servers_command, mcp_servers.args AS mcp_servers_args, mcp_servers.env AS mcp_servers_env, mcp_servers.enabled AS mcp_servers_enabled, mcp_servers.created_at AS mcp_servers_created_at, mcp_servers.updated_at AS mcp_servers_updated_at  FROM mcp_servers  WHERE mcp_servers.user_id = %(user_id_1)s AND mcp_servers.enabled IS true",
+          "duration_ms": 0.9550419636070728
+        },
+        {
+          "statement": "INSERT INTO messages (session_id, user_id, role, content) VALUES (%(session_id)s, %(user_id)s, %(role)s, %(content)s) RETURNING messages.id, messages.created_at",
+          "duration_ms": 2.3778750328347087
+        },
+        {
+          "statement": "SELECT messages.id, messages.session_id, messages.user_id, messages.role, messages.content, messages.created_at  FROM messages  WHERE messages.id = %(pk_1)s",
+          "duration_ms": 1.593416032847017
+        }
+      ],
+      "llm_calls_count": 2
+    },
+    {
+      "session_id": "redis_off_session_4_8dc8da",
+      "turn": 2,
+      "prompt": "Why is Redis faster than PostgreSQL?",
+      "is_cold": false,
+      "e2e_latency_ms": 17016.953209007625,
+      "db_query_count": 7,
+      "db_total_query_time_ms": 7.20666500274092,
+      "db_queries": [
+        {
+          "statement": "SELECT sessions.id AS sessions_id, sessions.user_id AS sessions_user_id, sessions.title AS sessions_title, sessions.created_at AS sessions_created_at  FROM sessions  WHERE sessions.id = %(id_1)s   LIMIT %(param_1)s",
+          "duration_ms": 1.068166980985552
+        },
+        {
+          "statement": "SELECT sessions.id AS sessions_id, sessions.user_id AS sessions_user_id, sessions.title AS sessions_title, sessions.created_at AS sessions_created_at  FROM sessions  WHERE sessions.id = %(id_1)s   LIMIT %(param_1)s",
+          "duration_ms": 0.5611249944195151
+        },
+        {
+          "statement": "INSERT INTO messages (session_id, user_id, role, content) VALUES (%(session_id)s, %(user_id)s, %(role)s, %(content)s) RETURNING messages.id, messages.created_at",
+          "duration_ms": 0.576582970097661
+        },
+        {
+          "statement": "SELECT messages.id, messages.session_id, messages.user_id, messages.role, messages.content, messages.created_at  FROM messages  WHERE messages.id = %(pk_1)s",
+          "duration_ms": 0.6901250453665853
+        },
+        {
+          "statement": "SELECT mcp_servers.id AS mcp_servers_id, mcp_servers.user_id AS mcp_servers_user_id, mcp_servers.name AS mcp_servers_name, mcp_servers.transport AS mcp_servers_transport, mcp_servers.url AS mcp_servers_url, mcp_servers.headers AS mcp_servers_headers, mcp_servers.command AS mcp_servers_command, mcp_servers.args AS mcp_servers_args, mcp_servers.env AS mcp_servers_env, mcp_servers.enabled AS mcp_servers_enabled, mcp_servers.created_at AS mcp_servers_created_at, mcp_servers.updated_at AS mcp_servers_updated_at  FROM mcp_servers  WHERE mcp_servers.user_id = %(user_id_1)s AND mcp_servers.enabled IS true",
+          "duration_ms": 1.1941660195589066
+        },
+        {
+          "statement": "INSERT INTO messages (session_id, user_id, role, content) VALUES (%(session_id)s, %(user_id)s, %(role)s, %(content)s) RETURNING messages.id, messages.created_at",
+          "duration_ms": 1.907958008814603
+        },
+        {
+          "statement": "SELECT messages.id, messages.session_id, messages.user_id, messages.role, messages.content, messages.created_at  FROM messages  WHERE messages.id = %(pk_1)s",
+          "duration_ms": 1.2085409834980965
+        }
+      ],
+      "llm_calls_count": 2
+    },
+    {
+      "session_id": "redis_off_session_4_8dc8da",
+      "turn": 3,
+      "prompt": "Give me a simple example.",
+      "is_cold": false,
+      "e2e_latency_ms": 6624.857833026908,
+      "db_query_count": 7,
+      "db_total_query_time_ms": 8.440667064860463,
+      "db_queries": [
+        {
+          "statement": "SELECT sessions.id AS sessions_id, sessions.user_id AS sessions_user_id, sessions.title AS sessions_title, sessions.created_at AS sessions_created_at  FROM sessions  WHERE sessions.id = %(id_1)s   LIMIT %(param_1)s",
+          "duration_ms": 1.036000030580908
+        },
+        {
+          "statement": "SELECT sessions.id AS sessions_id, sessions.user_id AS sessions_user_id, sessions.title AS sessions_title, sessions.created_at AS sessions_created_at  FROM sessions  WHERE sessions.id = %(id_1)s   LIMIT %(param_1)s",
+          "duration_ms": 0.5162919987924397
+        },
+        {
+          "statement": "INSERT INTO messages (session_id, user_id, role, content) VALUES (%(session_id)s, %(user_id)s, %(role)s, %(content)s) RETURNING messages.id, messages.created_at",
+          "duration_ms": 0.6981249898672104
+        },
+        {
+          "statement": "SELECT messages.id, messages.session_id, messages.user_id, messages.role, messages.content, messages.created_at  FROM messages  WHERE messages.id = %(pk_1)s",
+          "duration_ms": 0.9232920128852129
+        },
+        {
+          "statement": "SELECT mcp_servers.id AS mcp_servers_id, mcp_servers.user_id AS mcp_servers_user_id, mcp_servers.name AS mcp_servers_name, mcp_servers.transport AS mcp_servers_transport, mcp_servers.url AS mcp_servers_url, mcp_servers.headers AS mcp_servers_headers, mcp_servers.command AS mcp_servers_command, mcp_servers.args AS mcp_servers_args, mcp_servers.env AS mcp_servers_env, mcp_servers.enabled AS mcp_servers_enabled, mcp_servers.created_at AS mcp_servers_created_at, mcp_servers.updated_at AS mcp_servers_updated_at  FROM mcp_servers  WHERE mcp_servers.user_id = %(user_id_1)s AND mcp_servers.enabled IS true",
+          "duration_ms": 0.9909580112434924
+        },
+        {
+          "statement": "INSERT INTO messages (session_id, user_id, role, content) VALUES (%(session_id)s, %(user_id)s, %(role)s, %(content)s) RETURNING messages.id, messages.created_at",
+          "duration_ms": 2.8775419923476875
+        },
+        {
+          "statement": "SELECT messages.id, messages.session_id, messages.user_id, messages.role, messages.content, messages.created_at  FROM messages  WHERE messages.id = %(pk_1)s",
+          "duration_ms": 1.3984580291435122
+        }
+      ],
+      "llm_calls_count": 2
+    },
+    {
+      "session_id": "redis_off_session_4_8dc8da",
+      "turn": 4,
+      "prompt": "Summarize what you explained.",
+      "is_cold": false,
+      "e2e_latency_ms": 7169.1181670175865,
+      "db_query_count": 7,
+      "db_total_query_time_ms": 7.130750920623541,
+      "db_queries": [
+        {
+          "statement": "SELECT sessions.id AS sessions_id, sessions.user_id AS sessions_user_id, sessions.title AS sessions_title, sessions.created_at AS sessions_created_at  FROM sessions  WHERE sessions.id = %(id_1)s   LIMIT %(param_1)s",
+          "duration_ms": 1.0773339890874922
+        },
+        {
+          "statement": "SELECT sessions.id AS sessions_id, sessions.user_id AS sessions_user_id, sessions.title AS sessions_title, sessions.created_at AS sessions_created_at  FROM sessions  WHERE sessions.id = %(id_1)s   LIMIT %(param_1)s",
+          "duration_ms": 0.48979202983900905
+        },
+        {
+          "statement": "INSERT INTO messages (session_id, user_id, role, content) VALUES (%(session_id)s, %(user_id)s, %(role)s, %(content)s) RETURNING messages.id, messages.created_at",
+          "duration_ms": 0.6479999865405262
+        },
+        {
+          "statement": "SELECT messages.id, messages.session_id, messages.user_id, messages.role, messages.content, messages.created_at  FROM messages  WHERE messages.id = %(pk_1)s",
+          "duration_ms": 0.6937909638509154
+        },
+        {
+          "statement": "SELECT mcp_servers.id AS mcp_servers_id, mcp_servers.user_id AS mcp_servers_user_id, mcp_servers.name AS mcp_servers_name, mcp_servers.transport AS mcp_servers_transport, mcp_servers.url AS mcp_servers_url, mcp_servers.headers AS mcp_servers_headers, mcp_servers.command AS mcp_servers_command, mcp_servers.args AS mcp_servers_args, mcp_servers.env AS mcp_servers_env, mcp_servers.enabled AS mcp_servers_enabled, mcp_servers.created_at AS mcp_servers_created_at, mcp_servers.updated_at AS mcp_servers_updated_at  FROM mcp_servers  WHERE mcp_servers.user_id = %(user_id_1)s AND mcp_servers.enabled IS true",
+          "duration_ms": 1.0490419808775187
+        },
+        {
+          "statement": "INSERT INTO messages (session_id, user_id, role, content) VALUES (%(session_id)s, %(user_id)s, %(role)s, %(content)s) RETURNING messages.id, messages.created_at",
+          "duration_ms": 2.156624977942556
+        },
+        {
+          "statement": "SELECT messages.id, messages.session_id, messages.user_id, messages.role, messages.content, messages.created_at  FROM messages  WHERE messages.id = %(pk_1)s",
+          "duration_ms": 1.0161669924855232
+        }
+      ],
+      "llm_calls_count": 2
+    }
+  ],
+  "telemetry": {
+    "get_count": 0,
+    "set_count": 0,
+    "delete_count": 0,
+    "cache_hits": 0,
+    "cache_misses": 0,
+    "hit_ratio": 0.0,
+    "get_latencies_ms": [],
+    "set_latencies_ms": [],
+    "avg_get_latency_ms": 0.0,
+    "avg_set_latency_ms": 0.0
+  }
+}

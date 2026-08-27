@@ -1,4 +1,5 @@
 from models.session import Session
+from models.message import Message  # noqa: F401
 
 def create_session(db, session_id, user_id):
     existing = db.query(Session).filter(Session.id == session_id).first()

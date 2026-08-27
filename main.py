@@ -14,6 +14,8 @@ import hashlib
 from deepgram import DeepgramClient
 
 from Agent.agent import chat
+from mcp_client.manager import mcp_manager
+from mcp_client.router import mcp_router
 from db import SessionLocal
 from crud.session import create_session, get_sessions
 from crud.message import create_message, get_messages
@@ -41,6 +43,12 @@ def get_db():
 
 
 app = FastAPI()
+app.include_router(mcp_router)
+
+
+@app.on_event("shutdown")
+async def shutdown_mcp_connections():
+    await mcp_manager.shutdown()
 
 # 🔊 serve audio files
 os.makedirs("audio", exist_ok=True)
@@ -52,7 +60,17 @@ app.mount("/audio", StaticFiles(directory="audio"), name="audio")
 # ===========================
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    # Browsers reject the combination of credentialed requests and a
+    # wildcard origin. Keep local Next.js development origins explicit.
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:3001",
+        "http://127.0.0.1:3001",
+        "http://localhost:3002",
+        "http://127.0.0.1:3002",
+    ],
+    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:[0-9]+)?$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -66,6 +84,7 @@ class ChatRequest(BaseModel):
     message: str
     session_id: str
     file_id: Optional[str] = None
+    user_id: str = "demo_user"
 
 
 # ===========================
@@ -272,12 +291,12 @@ async def upload(file: UploadFile = File(...), session_id: str = Form(...)):
 # ===========================
 @app.post("/chat")
 def chat_api(req: ChatRequest, db: Session = Depends(get_db)):
-    user_id = "demo_user"
+    user_id = req.user_id
 
     create_session(db, req.session_id, user_id)
     create_message(db, req.session_id, user_id, "user", req.message)
 
-    response = chat(req.message, req.session_id, req.file_id)
+    response = chat(req.message, req.session_id, req.file_id, user_id)
 
     create_message(db, req.session_id, user_id, "ai", response)
 

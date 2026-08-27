@@ -19,7 +19,7 @@
 
 <br/><br/>
 
-<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=24&duration=3000&pause=1000&color=FF9800&center=true&vCenter=true&width=700&lines=Production+Ready+AI+Multi-Agent+Platform;FastAPI+%2B+OpenAI+%2B+Redis;RAG+Powered+Knowledge+Retrieval;Voice+AI+%2B+Vector+Search;Built+for+Scalable+AI+Applications" />
+<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=24&duration=3000&pause=1000&color=FF9800&center=true&vCenter=true&width=700&lines=Production+Ready+AI+Multi-Agent+Platform;FastAPI+%2B+xAI+Grok+%2B+Redis;RAG+Powered+Knowledge+Retrieval;Voice+AI+%2B+Vector+Search;Built+for+Scalable+AI+Applications" />
 
 </div>
 
@@ -36,7 +36,7 @@ The project is designed with a modular architecture, making it easy to extend wi
 # ✨ Features
 
 * 🤖 Multi-Agent AI Architecture
-* 💬 GPT-powered Conversational Assistant
+* 💬 Grok-powered Conversational Assistant
 * 📄 PDF Chat using Retrieval-Augmented Generation (RAG)
 * 🔍 Semantic Search with Qdrant
 * 🎤 Voice Interaction using Deepgram
@@ -68,7 +68,7 @@ A[AI Multi-Agent Platform]
 
 subgraph Chat
 B[Chat Agent]
-C[OpenAI]
+C[xAI Grok]
 D[(Postgres)]
 E[(Redis)]
 B --> C
@@ -111,7 +111,7 @@ A --> J
 * Redis
 * Qdrant
 * Docker
-* OpenAI API
+* xAI Grok API
 * Deepgram API
 
 ---
@@ -190,7 +190,7 @@ docker-compose up --build
 # ⚙️ Environment Variables
 
 ```env
-OPENAI_API_KEY=
+XAI_API_KEY=
 
 DEEPGRAM_API_KEY=
 
@@ -206,7 +206,7 @@ QDRANT_URL=
 # 📈 Roadmap
 
 * ✅ Multi-Agent Architecture
-* ✅ GPT Chat
+* ✅ Grok Chat
 * ✅ Voice Assistant
 * ✅ PDF Chat
 * ✅ RAG Pipeline
