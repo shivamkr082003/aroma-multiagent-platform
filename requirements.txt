@@ -69,6 +69,7 @@ hiredis>=2.3.0                # C-accelerated Redis parser (faster serialization
 # ===========================
 sqlalchemy
 psycopg2-binary
+psycopg[binary]                # SQLAlchemy 2.1+ uses psycopg (v3) for postgresql:// URLs
 alembic
 
 # ===========================

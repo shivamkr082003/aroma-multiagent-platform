@@ -20,7 +20,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg \
 
 # CPU-only PyTorch: the default wheel bundles CUDA (several GB) that a CPU host can't use.
 COPY requirements.txt /tmp/requirements.txt
-RUN pip install --no-cache-dir -r /tmp/requirements.txt \
+# Generous timeout/retries: one slow download shouldn't fail a 10-minute build.
+RUN pip install --no-cache-dir --timeout 120 --retries 8 -r /tmp/requirements.txt \
         --extra-index-url https://download.pytorch.org/whl/cpu \
     && python -m playwright install-deps chromium
 
