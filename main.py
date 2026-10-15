@@ -88,12 +88,23 @@ def startup():
     if current_mode() == "hybrid_rerank":
         get_reranker()  # same for the reranker and the first document question
 
-@app.get("/")
-def home():
-    return {
-        "message": "Backend is running!",
-        "docs": "/docs"
-    }
+@app.get("/health")
+def health():
+    return {"status": "ok", "docs": "/docs"}
+
+
+# When the built frontend is present (the Docker image), serve it from the same
+# origin: one URL, first-party auth cookies, no CORS or proxy. Mounted last in
+# the startup hook so every API route above takes precedence over the files.
+FRONTEND_DIR = os.getenv("FRONTEND_DIR", "frontend/out")
+
+
+@app.on_event("startup")
+def mount_frontend():
+    if os.path.isdir(FRONTEND_DIR):
+        app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")
+    else:
+        app.add_api_route("/", lambda: {"message": "Backend is running!", "docs": "/docs"}, methods=["GET"])
 # ===========================
 # Upload API
 # ===========================

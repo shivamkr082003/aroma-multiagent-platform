@@ -6,6 +6,7 @@ Configuration (environment variables):
 - LOCAL_EMBEDDING_MODEL: sentence-transformers model for "local"
   (default BAAI/bge-small-en-v1.5, 384 dims, ~130 MB download on first use).
 - QDRANT_URL: Qdrant server (default http://localhost:6333).
+- QDRANT_API_KEY: required for Qdrant Cloud, unset for a local Qdrant.
 - QDRANT_COLLECTION: override the collection name. By default each
   embedding model gets its own collection, because vectors from different
   models can't be searched together.
@@ -26,7 +27,9 @@ load_dotenv()
 
 logger = logging.getLogger("aroma.rag")
 
-qdrant_client = QdrantClient(url=os.getenv("QDRANT_URL", "http://localhost:6333"))
+# QDRANT_API_KEY is only needed for Qdrant Cloud; a local Qdrant has none.
+qdrant_client = QdrantClient(url=os.getenv("QDRANT_URL", "http://localhost:6333"),
+                             api_key=os.getenv("QDRANT_API_KEY") or None)
 
 # Payload fields every search filters on; indexed so filtering stays fast as data grows.
 _INDEXED_FIELDS = ("metadata.user_id", "metadata.session_id", "metadata.project_id", "metadata.file_id",

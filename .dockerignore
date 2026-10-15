@@ -1,0 +1,17 @@
+.git
+.github
+.env
+venv
+.venv
+**/__pycache__
+**/node_modules
+frontend/.next
+frontend/out
+audio
+temp_*
+*.mp3
+*.wav
+*.webm
+docker/qdrant_storage
+benchmark-results
+.DS_Store

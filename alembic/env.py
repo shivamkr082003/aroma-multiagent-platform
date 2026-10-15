@@ -18,7 +18,14 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
+import os
+
 from db import Base
+
+# The database URL comes from the environment (.env locally, secrets in
+# production), never from alembic.ini, which is committed to git.
+if os.getenv("DATABASE_URL"):
+    config.set_main_option("sqlalchemy.url", os.environ["DATABASE_URL"].replace("%", "%%"))
 from models import session, message, user, project, template  # noqa: F401 - registers tables
 from mcp_client.models import MCPServer  # noqa: F401 - registers MCP table
 
