@@ -4,6 +4,10 @@
 
 <br/>
 
+<a href="https://github.com/shivamkr082003/aroma-multiagent-platform/actions/workflows/ci.yml">
+  <img src="https://img.shields.io/github/actions/workflow/status/shivamkr082003/aroma-multiagent-platform/ci.yml?branch=main&style=for-the-badge&label=CI&labelColor=1a1a1a" />
+</a>
+
 <a href="https://github.com/shivamkr082003/aroma-multiagent-platform/stargazers">
   <img src="https://img.shields.io/github/stars/shivamkr082003/aroma-multiagent-platform?style=for-the-badge&color=ff9800&labelColor=1a1a1a" />
 </a>

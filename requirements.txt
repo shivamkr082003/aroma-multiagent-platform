@@ -43,6 +43,10 @@ playwright>=1.44.0            # ← NEW: headless browser fallback for JS-render
 qdrant-client
 sentence-transformers          # free local embeddings for document chat (rag_store.py)
 pypdf
+pymupdf                        # layout-aware PDF text extraction (documents.py)
+docx2txt                       # .docx uploads
+langchain-text-splitters       # chunking (rag_store.split_documents)
+ffmpeg-python                  # voice: converts browser recordings (needs the ffmpeg binary)
 unstructured
 tiktoken
 

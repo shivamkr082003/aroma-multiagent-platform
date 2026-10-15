@@ -11,8 +11,6 @@ import uuid
 import requests
 import ffmpeg
 import json
-# ✅ FIXED IMPORT (OLD SDK COMPATIBLE)
-from deepgram import DeepgramClient
 
 from Agent.agent import achat, achat_stream
 from mcp_client.manager import mcp_manager

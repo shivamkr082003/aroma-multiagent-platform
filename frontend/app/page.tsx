@@ -190,9 +190,9 @@ function ShareButton({ getShareText }: { getShareText: () => string }) {
     const text = getShareText();
     if (!text.trim()) return;
 
-    if (typeof navigator !== "undefined" && (navigator as any).share) {
+    if (typeof navigator !== "undefined" && "share" in navigator) {
       try {
-        await (navigator as any).share({
+        await navigator.share({
           title: "AI Chat Helper conversation",
           text,
         });
@@ -778,7 +778,7 @@ function ChatMessage({
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               components={{
-                code({ className, children, ...props }: any) {
+                code({ className, children, ...props }: React.ComponentPropsWithoutRef<"code">) {
                   const isBlock =
                     /language-(\w+)/.test(className || "") ||
                     String(children).includes("\n");
@@ -792,7 +792,7 @@ function ChatMessage({
                     </code>
                   );
                 },
-                pre({ children }: any) {
+                pre({ children }: { children?: React.ReactNode }) {
                   return <>{children}</>;
                 },
                 a({ href, children }: { href?: string; children?: React.ReactNode }) {
@@ -854,7 +854,10 @@ function FileChip({ file, onRemove }: { file: File; onRemove: () => void }) {
 
   useEffect(() => {
     if (isImage) {
+      // The object URL is an external resource: create and revoke it in the
+      // same effect, or the preview breaks under React's dev double-mount.
       const url = URL.createObjectURL(file);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setPreview(url);
       return () => URL.revokeObjectURL(url);
     }
@@ -1183,9 +1186,9 @@ function ChatApp({ user, onLogout }: { user: AuthUser; onLogout: () => void }) {
   }, []);
 
   const loadSession = async (id: string, project?: ProjectRef) => {
-    const res = await axios.get(`${API}/messages/${id}`);
+    const res = await axios.get<{ role: "user" | "ai"; content: string; sources?: Source[] }[]>(`${API}/messages/${id}`);
     setMessages(
-      res.data.map((m: any) => ({
+      res.data.map((m) => ({
         role: m.role,
         content: m.content,
         sources: m.sources,

@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# A newer push to the same branch cancels the run still in progress.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: requirements.txt
+
+      - name: Create Python 3.12 environment
+        run: uv venv -p 3.12
+
+      # CPU-only PyTorch: the default Linux wheel bundles CUDA (several GB) that CI never uses.
+      - name: Install dependencies
+        run: >
+          uv pip install -r requirements.txt
+          --extra-index-url https://download.pytorch.org/whl/cpu
+          --index-strategy unsafe-best-match
+
+      # Tests use in-memory SQLite and Qdrant and mock every external API,
+      # so no secrets or services are needed.
+      - name: Run tests
+        run: .venv/bin/python -m pytest -q
+
+  frontend:
+    name: Frontend types, lint & build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - run: npm ci
+      - name: Type check
+        run: npx tsc --noEmit
+      - name: Lint
+        run: npm run lint
+      - name: Build
+        run: npm run build
