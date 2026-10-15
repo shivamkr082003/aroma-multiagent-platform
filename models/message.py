@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, TIMESTAMP, ForeignKey
+from sqlalchemy import Column, Integer, JSON, String, Text, TIMESTAMP, ForeignKey
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 
@@ -13,6 +13,7 @@ class Message(Base):
     user_id = Column(String, index=True)
     role = Column(String)
     content = Column(Text)
+    sources = Column(JSON, nullable=True)  # citations shown under AI answers
     created_at = Column(TIMESTAMP, server_default=func.now())
 
     # 🔥 relationship

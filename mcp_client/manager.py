@@ -6,6 +6,7 @@ from typing import Optional
 from sqlalchemy.orm import Session
 
 from .cache import tool_cache
+from .security import check_transport_allowed
 
 logger = logging.getLogger("aroma.mcp")
 
@@ -19,7 +20,15 @@ class MCPManager:
         try:
             from .models import MCPServer
             servers = db.query(MCPServer).filter(MCPServer.user_id == user_id, MCPServer.enabled.is_(True)).all()
-            config = {server.name: server.to_client_config() for server in servers}
+            config = {}
+            for server in servers:
+                # Re-check policy here too: rows saved before a policy change
+                # (e.g. STDIO turned off) must not start processes.
+                try:
+                    check_transport_allowed(server.transport, server.command)
+                    config[server.name] = server.to_client_config()
+                except ValueError as exc:
+                    logger.warning("Skipping MCP server '%s': %s", server.name, exc)
             if not config:
                 return []
             cached = await tool_cache.get(user_id, config)

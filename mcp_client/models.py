@@ -6,6 +6,7 @@ from sqlalchemy import Boolean, Column, JSON, String, Text, TIMESTAMP, UniqueCon
 from sqlalchemy.sql import func
 
 from db import Base
+from .security import EncryptedJSON
 
 
 class MCPServer(Base):
@@ -17,10 +18,10 @@ class MCPServer(Base):
     name = Column(String, nullable=False)
     transport = Column(String, nullable=False)  # http, sse, or stdio
     url = Column(Text, nullable=True)
-    headers = Column(JSON, nullable=True)
+    headers = Column(EncryptedJSON, nullable=True)  # encrypted at rest
     command = Column(String, nullable=True)
     args = Column(JSON, nullable=True)
-    env = Column(JSON, nullable=True)
+    env = Column(EncryptedJSON, nullable=True)  # encrypted at rest
     enabled = Column(Boolean, default=True, nullable=False)
     created_at = Column(TIMESTAMP, server_default=func.now())
     updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())

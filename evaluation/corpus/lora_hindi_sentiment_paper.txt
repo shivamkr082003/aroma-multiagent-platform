@@ -1,0 +1,26 @@
+Parameter-Efficient Fine-Tuning for Hindi and Hinglish Sentiment Analysis
+Authors: Priya Nair, Arjun Kulkarni, and Dr. Sameer Joshi. Department of Computer Engineering. Preprint, under review.
+
+ABSTRACT
+Sentiment analysis for Indian social media is hard because users mix Hindi and English, often writing Hindi in Latin script (Hinglish). Full fine-tuning of large multilingual models is expensive for academic labs. We study Low-Rank Adaptation (LoRA) for this task and show that it matches full fine-tuning while training less than one percent of the parameters. Our best model reaches a macro F1 score of 0.873 on our test set.
+
+1. INTRODUCTION
+Code-mixed text such as "movie ekdum bakwaas thi but songs were nice" contains sentiment cues in both languages, inconsistent spelling and frequent sarcasm. Existing Hindi sentiment datasets are mostly in Devanagari script and come from news or product reviews, so models trained on them perform poorly on informal social media posts.
+
+2. DATASET
+We collected 48,000 public posts from Twitter and YouTube comments between 2023 and 2025 and called the dataset HinglishSent-48K. Three annotators labelled each post as positive, negative or neutral. Inter-annotator agreement measured by Fleiss' kappa was 0.71, which indicates substantial agreement. The split is 38,400 posts for training, 4,800 for validation and 4,800 for testing. About 62 percent of posts are code-mixed and the rest are pure Hindi or pure English.
+
+3. METHOD
+Our base model is XLM-RoBERTa-large with 560 million parameters. We insert LoRA adapters into the query and value projection matrices of every attention layer, with rank r = 16 and scaling factor alpha = 32. Only the adapters and the classification head are trained, which is 2.4 million parameters, or 0.43 percent of the full model. We also apply a transliteration-aware tokenisation step that normalises common Hinglish spellings, for example mapping "bht", "bahut" and "bohot" to a single form.
+
+4. EXPERIMENTAL SETUP
+All models were trained on a single NVIDIA A100 GPU with 40 GB of memory. We used the AdamW optimiser with a learning rate of 3e-4 for LoRA and 2e-5 for full fine-tuning, a batch size of 32 and 5 training epochs, with early stopping on validation macro F1.
+
+5. RESULTS
+Full fine-tuning of XLM-RoBERTa-large reached a macro F1 of 0.869 and took 7.5 hours of training. LoRA reached a macro F1 of 0.873 and took 2.1 hours. Adding transliteration-aware tokenisation improved LoRA by a further 1.6 points on the code-mixed subset. A multilingual BERT baseline reached only 0.791. The LoRA adapter file is 9.6 MB, compared with 2.2 GB for a fully fine-tuned checkpoint, which makes it practical to store one adapter per domain.
+
+6. ERROR ANALYSIS
+Most remaining errors involve sarcasm, for example "wah kya service hai, 3 ghante se wait kar raha hoon", which is negative despite positive words. The model also confuses neutral news-like posts with mildly negative ones. Posts with emojis only were excluded from the dataset.
+
+7. CONCLUSION AND FUTURE WORK
+LoRA is an efficient and accurate way to adapt large multilingual models to Hinglish sentiment. Future work includes sarcasm-specific training data, extending the dataset to Marathi-English and Tamil-English code-mixing, and distilling the model to run on mobile phones. The dataset will be released for research use under a CC BY-NC 4.0 licence.

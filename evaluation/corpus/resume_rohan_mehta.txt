@@ -1,0 +1,41 @@
+ROHAN MEHTA
+B.Tech Computer Science and Engineering, Final Year
+Email: rohan.mehta.dev@example.com | Phone: +91 98765 43210 | Pune, Maharashtra
+LinkedIn: linkedin.com/in/rohan-mehta-cs | GitHub: github.com/rohanmehta-dev | LeetCode: leetcode.com/u/rohan_codes
+
+CAREER OBJECTIVE
+Backend-focused software engineer who enjoys building reliable distributed systems and developer tools. Looking for a full-time role where I can work on scalable APIs, data pipelines and infrastructure.
+
+EDUCATION
+Vishwakarma Institute of Technology, Pune — B.Tech in Computer Science and Engineering, 2022 to 2026. Current CGPA: 8.74 out of 10 after seven semesters. Relevant coursework: Operating Systems, Database Management Systems, Computer Networks, Distributed Systems, Compiler Design, Machine Learning.
+Kendriya Vidyalaya, Nashik — Class XII (CBSE), 2022, scored 93.2 percent with Physics, Chemistry and Mathematics.
+
+TECHNICAL SKILLS
+Languages: Go, Python, TypeScript, Java, SQL.
+Backend: FastAPI, gRPC, Express, Spring Boot.
+Data and messaging: PostgreSQL, Redis, Apache Kafka, Elasticsearch.
+Cloud and DevOps: Docker, Kubernetes, GitHub Actions, AWS (EC2, S3, Lambda), Terraform.
+Tools: Linux, Git, Postman, Grafana, Prometheus.
+
+WORK EXPERIENCE
+Software Engineering Intern, Razorpay, Bengaluru — May 2025 to July 2025.
+Worked in the payouts reliability team. Rebuilt the webhook retry scheduler in Go using a Redis sorted set as a delay queue, which cut failed-merchant-notification tickets by 37 percent. Added idempotency keys to the bulk payout API so that client retries no longer created duplicate transfers. Wrote load tests with k6 that simulated 12,000 requests per second.
+
+Backend Developer Intern, CampusKart (early-stage startup), Remote — December 2024 to February 2025.
+Built the order service for a campus marketplace in FastAPI and PostgreSQL. Designed the inventory locking logic that prevents two buyers from purchasing the same second-hand item. Reduced the p95 latency of the search endpoint from 840 ms to 210 ms by adding a trigram index.
+
+PROJECTS
+Driftwood — a distributed key-value store (Go, Raft). Implemented leader election and log replication from the Raft paper, with snapshotting to keep logs bounded. The cluster survives the loss of any minority of nodes. Benchmarked at 18,500 writes per second on a three-node cluster on a laptop.
+
+PaperTrail — semantic search over research papers (Python, FastAPI, Qdrant). Ingests arXiv PDFs, splits them into chunks and lets users ask questions in plain English. Added a cross-encoder reranker that improved top-3 accuracy on a hand-labelled set of 150 questions.
+
+LogLens — log analytics dashboard (TypeScript, Kafka, Elasticsearch). Streams application logs through Kafka into Elasticsearch and shows error spikes on a Grafana-style dashboard with alerting through Slack webhooks.
+
+ACHIEVEMENTS
+Solved more than 650 problems on LeetCode; contest rating 1912 (Knight badge).
+Winner, Smart India Hackathon 2024, software edition, for an offline-first crop advisory app used in 3 villages.
+Finalist, Google Solution Challenge 2025 (top 100 globally).
+Teaching assistant for the Data Structures lab for two semesters.
+
+POSITIONS OF RESPONSIBILITY
+Technical Lead, Google Developer Student Club, VIT Pune (2024 to 2025): organised a 36-hour hackathon with 420 participants and ran weekly backend workshops.

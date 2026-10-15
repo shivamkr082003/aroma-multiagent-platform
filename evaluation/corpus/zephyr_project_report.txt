@@ -1,0 +1,29 @@
+PROJECT ZEPHYR — FINAL TECHNICAL REPORT
+An offline-first expense tracker for college clubs. Team lead: Ananya Rao. Faculty mentor: Dr. Kavita Deshpande. Report version 2.1.
+
+1. PROBLEM STATEMENT
+College clubs handle money from sponsorships, event tickets and member fees, but most track it in shared spreadsheets. Treasurers often work at event venues with poor connectivity, so updates are lost or overwritten. Zephyr lets several treasurers record expenses on their phones without internet and merges everything when they reconnect.
+
+2. ARCHITECTURE OVERVIEW
+The mobile app is written in Flutter and stores data locally in SQLite. A sync service written in Go runs on the server and stores the canonical copy in PostgreSQL 16. The app talks to the server over HTTPS using a small REST API. Push notifications for approvals are sent through Firebase Cloud Messaging.
+
+3. SYNCHRONISATION DESIGN
+Every expense record carries a hybrid logical clock timestamp and the ID of the device that last changed it. When a phone comes back online it uploads its change log since the last successful sync and downloads changes from other devices. Background sync runs every 15 minutes when the phone is on Wi-Fi and every 60 minutes on mobile data, to save the user's data pack.
+
+4. CONFLICT RESOLUTION
+The biggest risk identified in the design review was merge conflicts when two treasurers edit the same expense while offline. Zephyr resolves conflicts field by field rather than record by record: if one treasurer changes the amount and another changes the category, both edits are kept. If both change the same field, the edit with the later hybrid logical clock wins and the losing value is saved in a conflict log that the club president can review and undo.
+
+5. SECURITY
+Users sign in with their college Google account. Each club has three roles: member, treasurer and president. Only treasurers can add expenses and only the president can approve reimbursements above 5,000 rupees. Data on the phone is encrypted with SQLCipher, and all API calls require a short-lived JWT that expires after 30 minutes.
+
+6. TESTING AND RESULTS
+We ran a two-week pilot with four clubs: the robotics club, the music society, the entrepreneurship cell and the drama club. In total 61 users recorded 1,284 expenses. The sync service handled a peak of 340 sync requests per minute during the annual cultural fest. Only 9 conflicts reached the conflict log, and all were resolved by the presidents in under a day. Average sync time for a typical change log of 20 records was 1.8 seconds on 4G.
+
+7. BUDGET
+The project was funded by the Innovation Cell with a budget of 42,500 rupees. The largest items were cloud hosting on a 2 vCPU virtual machine (18,000 rupees for one year), Apple developer membership (8,000 rupees) and test devices (12,500 rupees). The remaining amount was kept as contingency.
+
+8. LIMITATIONS AND FUTURE WORK
+Receipts are stored as photos and are not yet read automatically. In the next version we plan to add on-device OCR so the amount and vendor are filled in from a receipt photo. We also want to export monthly statements as PDF for the college accounts office, and to support UPI payment links for collecting member fees.
+
+9. TIMELINE
+Requirements and design: January 2026. Development of the app and sync service: February to April 2026. Pilot with four clubs: May 2026. Final submission deadline: 14 March 2027 for the extended research paper.

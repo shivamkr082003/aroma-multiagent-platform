@@ -12,15 +12,79 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/* Aroma is a light-only design: no dark-mode override here. With one, text
+   in white inputs and panels inherits #ededed and becomes unreadable. */
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* ── Auth pages ─────────────────────────────────────────── */
+@keyframes aroma-rise {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes aroma-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes aroma-progress {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+@keyframes aroma-dot {
+  0%, 80%, 100% { opacity: 0.3; transform: translateY(0); }
+  40% { opacity: 1; transform: translateY(-3px); }
+}
+@keyframes aroma-drift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(40px, 30px) scale(1.08); }
+}
+
+.aroma-rise { animation: aroma-rise 420ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.aroma-fade-in { animation: aroma-fade-in 240ms ease-out both; }
+.aroma-progress { animation: aroma-progress linear both; }
+.aroma-dot { animation: aroma-dot 1.1s ease-in-out infinite; }
+.aroma-drift { animation: aroma-drift 18s ease-in-out infinite; }
+.aroma-drift-slow { animation: aroma-drift 26s ease-in-out infinite reverse; }
+
+@media (prefers-reduced-motion: reduce) {
+  .aroma-rise, .aroma-fade-in, .aroma-dot, .aroma-drift, .aroma-drift-slow { animation: none; }
+  .aroma-progress { animation: none; transform: scaleX(1); }
+}
+
+/* ── Chat streaming ─────────────────────────────────────── */
+/* Blinking caret after the last block while tokens arrive */
+.aroma-streaming > :last-child::after {
+  content: "";
+  display: inline-block;
+  width: 0.45em;
+  height: 1.05em;
+  margin-left: 2px;
+  vertical-align: -0.15em;
+  border-radius: 2px;
+  background: linear-gradient(to bottom, #fb923c, #f43f5e);
+  animation: aroma-caret 1s steps(2, start) infinite;
+}
+@keyframes aroma-caret {
+  to { visibility: hidden; }
+}
+/* Moving highlight across the live status label */
+.aroma-shimmer {
+  background: linear-gradient(90deg, #334155 0%, #334155 38%, #f97316 50%, #334155 62%, #334155 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: aroma-shimmer 2s linear infinite;
+}
+@keyframes aroma-shimmer {
+  from { background-position: 100% 0; }
+  to { background-position: -100% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .aroma-streaming > :last-child::after { animation: none; }
+  .aroma-shimmer { animation: none; color: #334155; background: none; }
 }

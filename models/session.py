@@ -11,6 +11,7 @@ class Session(Base):
     id = Column(String, primary_key=True)
     user_id = Column(String, index=True)
     title = Column(String, default="New Chat")
+    project_id = Column(String, index=True, nullable=True)  # set when the chat belongs to a project
     created_at = Column(TIMESTAMP, server_default=func.now())
 
     # 🔥 relationship

@@ -3,7 +3,9 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
+
+from .security import mask
 
 
 class MCPServerCreate(BaseModel):
@@ -67,6 +69,17 @@ class MCPServerResponse(BaseModel):
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
     model_config = {"from_attributes": True}
+
+    # Header and env values usually hold API keys; never send them back.
+    @field_validator("headers", "env")
+    @classmethod
+    def mask_secrets(cls, value):
+        return mask(value)
+
+
+class MCPConfigResponse(BaseModel):
+    stdio_allowed: bool
+    stdio_allowed_commands: list[str]
 
 
 class MCPToolInfo(BaseModel):

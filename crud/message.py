@@ -3,12 +3,13 @@ from models.message import Message
 from models.session import Session as SessionModel
 
 
-def create_message(db: Session, session_id, user_id, role, content):
+def create_message(db: Session, session_id, user_id, role, content, sources=None):
     msg = Message(
         session_id=session_id,
         user_id=user_id,
         role=role,
-        content=content
+        content=content,
+        sources=sources or None,
     )
 
     db.add(msg)

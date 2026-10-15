@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import axios from "axios";
+import { useRouter } from "next/navigation";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneLight } from "react-syntax-highlighter/dist/esm/styles/prism";
 
@@ -14,25 +15,57 @@ type Message = {
   id: string;
   thinking?: boolean;
   attachedFile?: { name: string; size: number; type: string; url?: string };
+  // Set while the answer streams in: what the agent is doing right now.
+  status?: string;
+  streaming?: boolean;
+  sources?: Source[];
+  autoPlay?: boolean; // speak voice replies as soon as they arrive
 };
+
+// Browsers record different formats (Safari: mp4); the server converts any of them.
+const VOICE_MIME_TYPES = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/ogg;codecs=opus"];
+const MIN_RECORDING_MS = 700;
+
+function micErrorMessage(error: unknown): string {
+  if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined")
+    return "This browser can't record audio. Try Chrome, Edge or Safari.";
+  const name = error instanceof DOMException ? error.name : "";
+  if (name === "NotAllowedError" || name === "SecurityError")
+    return "Microphone access is blocked. Click the lock icon in the address bar and allow the microphone. On a Mac, also allow your browser in System Settings → Privacy & Security → Microphone.";
+  if (name === "NotFoundError" || name === "OverconstrainedError") return "No microphone found. Connect one and try again.";
+  if (name === "NotReadableError") return "Another app is using your microphone. Close it and try again.";
+  return "Couldn't start recording. Check that this site may use your microphone (lock icon in the address bar), then try again.";
+}
 
 type Session = {
   id: string;
   title: string;
   created_at: string;
+  project_id?: string | null;
 };
 
-type MCPServer = {
-  id: string;
-  name: string;
-  transport: "http" | "sse" | "stdio";
-  url?: string | null;
-  command?: string | null;
-  args?: string[] | null;
-  enabled: boolean;
+type View = "chat" | "templates" | "projects" | "stats" | "help";
+type ProjectRef = { id: string; name: string };
+
+const VIEW_TITLES: Record<Exclude<View, "chat">, string> = {
+  templates: "Templates",
+  projects: "My Projects",
+  stats: "Statistics",
+  help: "Updates & FAQ",
 };
 
-const API = "http://127.0.0.1:8000";
+
+import { API, getCurrentUser, logout, type AuthUser } from "@/lib/auth";
+import { streamChat, UnauthorizedError, type Source } from "@/lib/chatStream";
+import { workspaceApi } from "@/lib/workspace";
+import { HelpView } from "./_components/HelpView";
+import { ProjectsView } from "./_components/ProjectsView";
+import { StatsView } from "./_components/StatsView";
+import { TemplatesView } from "./_components/TemplatesView";
+import { MCPPanel } from "./_components/MCPPanel";
+
+// Every API call carries the httpOnly session cookie.
+axios.defaults.withCredentials = true;
 
 function generateId() {
   return Math.random().toString(36).slice(2, 10);
@@ -300,34 +333,90 @@ function HistoryItem({
   session,
   active,
   onClick,
+  onRename,
+  onDelete,
 }: {
   session: Session;
   active: boolean;
   onClick: () => void;
+  onRename: (title: string) => void;
+  onDelete: () => void;
 }) {
-  return (
-    <button
-      onClick={onClick}
-      className={`w-full flex items-start gap-2.5 text-left px-3 py-2.5 rounded-xl transition-colors duration-150
-        ${active ? "bg-orange-50 border border-orange-200" : "hover:bg-slate-50 border border-transparent"}`}
-    >
-      <span
-        className={`mt-0.5 w-3.5 h-3.5 rounded-[5px] border flex-shrink-0 ${
-          active ? "bg-orange-400 border-orange-400" : "border-slate-300"
-        }`}
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(session.title);
+
+  if (editing) {
+    const finish = (save: boolean) => {
+      setEditing(false);
+      const title = draft.trim();
+      if (save && title && title !== session.title) onRename(title);
+    };
+    return (
+      <input
+        autoFocus
+        value={draft}
+        maxLength={120}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={() => finish(true)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") finish(true);
+          if (e.key === "Escape") finish(false);
+        }}
+        aria-label="Chat title"
+        className="w-full rounded-xl border border-orange-300 bg-white px-3 py-2.5 text-[12.5px] font-semibold text-slate-700 outline-none ring-4 ring-orange-500/10"
       />
-      <span className="min-w-0">
-        <p className="text-[12.5px] font-semibold text-slate-700 truncate">
-          {session.title || "New conversation"}
-        </p>
-        <p className="text-[11px] text-slate-400 truncate mt-0.5">
-          {new Date(session.created_at).toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-          })}
-        </p>
-      </span>
-    </button>
+    );
+  }
+
+  return (
+    <div className="group relative">
+      <button
+        onClick={onClick}
+        className={`w-full flex items-start gap-2.5 text-left px-3 py-2.5 pr-14 rounded-xl transition-colors duration-150
+          ${active ? "bg-orange-50 border border-orange-200" : "hover:bg-slate-50 border border-transparent"}`}
+      >
+        <span
+          className={`mt-0.5 w-3.5 h-3.5 rounded-[5px] border flex-shrink-0 ${
+            active ? "bg-orange-400 border-orange-400" : "border-slate-300"
+          }`}
+        />
+        <span className="min-w-0">
+          <p className="text-[12.5px] font-semibold text-slate-700 truncate">
+            {session.title || "New conversation"}
+          </p>
+          <p className="text-[11px] text-slate-400 truncate mt-0.5">
+            {session.project_id && <span className="text-orange-600">Project · </span>}
+            {new Date(session.created_at).toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+            })}
+          </p>
+        </span>
+      </button>
+      <div className="absolute right-1.5 top-1/2 flex -translate-y-1/2 gap-0.5 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
+        <button
+          onClick={() => {
+            setDraft(session.title);
+            setEditing(true);
+          }}
+          aria-label={`Rename ${session.title || "chat"}`}
+          className="rounded-lg p-1.5 text-slate-400 hover:bg-white hover:text-slate-700"
+        >
+          <svg aria-hidden className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15.2 5.2l3.6 3.6M4 20l4.2-1 10.6-10.6a2.5 2.5 0 00-3.6-3.6L4.6 15.4 4 20z" />
+          </svg>
+        </button>
+        <button
+          onClick={onDelete}
+          aria-label={`Delete ${session.title || "chat"}`}
+          className="rounded-lg p-1.5 text-slate-400 hover:bg-white hover:text-rose-600"
+        >
+          <svg aria-hidden className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M19 7l-.9 12.1A2 2 0 0116.1 21H7.9a2 2 0 01-2-1.9L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -546,6 +635,96 @@ function MessageActions({
   );
 }
 
+// ── Live agent status (shown until the first answer token) ─────
+function AgentStatus({ label }: { label: string }) {
+  return (
+    <div className="flex items-center gap-2.5 py-0.5" role="status" aria-live="polite">
+      <span className="relative flex h-4 w-4 items-center justify-center">
+        <span className="absolute h-4 w-4 animate-ping rounded-full bg-orange-300/50" />
+        <span className="h-2 w-2 rounded-full bg-gradient-to-br from-orange-400 to-rose-500" />
+      </span>
+      <span key={label} className="aroma-shimmer msg-animate text-[13px] font-medium">
+        {label}
+      </span>
+    </div>
+  );
+}
+
+// Turn "[2]" (or "【2】", which some models emit) into a markdown link
+// that ReactMarkdown renders as a citation badge.
+function linkCitations(content: string, sources?: Source[]): string {
+  if (!sources?.length) return content;
+  const ids = new Set(sources.map((s) => s.id));
+  return content.replace(/[[【](\d{1,2})[\]】](?![(:])/g, (match, n) => (ids.has(Number(n)) ? `[${n}](#cite-${n})` : match));
+}
+
+function SourceList({
+  sources,
+  active,
+  onSelect,
+}: {
+  sources: Source[];
+  active: number | null;
+  onSelect: (id: number | null) => void;
+}) {
+  const activeSource = sources.find((s) => s.id === active && s.type === "document");
+  return (
+    <div className="mt-2.5 ml-1">
+      <p className="mb-1.5 text-[10.5px] font-semibold uppercase tracking-[0.14em] text-slate-400">Sources</p>
+      <div className="flex flex-wrap gap-1.5">
+        {sources.map((source) => {
+          const isActive = source.id === active;
+          const chipClass = `group inline-flex max-w-[260px] items-center gap-1.5 rounded-lg border px-2 py-1 text-[12px] transition-colors ${
+            isActive ? "border-orange-300 bg-orange-50 text-orange-800" : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:text-slate-900"
+          }`;
+          const number = (
+            <span className={`flex h-4 min-w-4 items-center justify-center rounded px-1 text-[10px] font-semibold ${isActive ? "bg-orange-500 text-white" : "bg-slate-100 text-slate-500"}`}>
+              {source.id}
+            </span>
+          );
+          if (source.type === "web" && source.url) {
+            let domain = source.url;
+            try {
+              domain = new URL(source.url).hostname.replace(/^www\./, "");
+            } catch {}
+            return (
+              <a key={source.id} href={source.url} target="_blank" rel="noopener noreferrer" className={chipClass} title={source.url}>
+                {number}
+                <svg aria-hidden className="h-3.5 w-3.5 shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="9" strokeWidth={1.8} />
+                  <path strokeWidth={1.8} d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z" />
+                </svg>
+                <span className="truncate">{source.title !== domain ? source.title : domain}</span>
+                {source.title !== domain && <span className="shrink-0 text-slate-400">{domain}</span>}
+              </a>
+            );
+          }
+          return (
+            <button key={source.id} type="button" onClick={() => onSelect(isActive ? null : source.id)} className={chipClass} aria-expanded={isActive}>
+              {number}
+              <svg aria-hidden className="h-3.5 w-3.5 shrink-0 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8l-5-5zM14 3v5h5" />
+              </svg>
+              <span className="truncate">{source.title}</span>
+              {source.page && <span className="shrink-0 text-slate-400">p.{source.page}</span>}
+            </button>
+          );
+        })}
+      </div>
+      {activeSource?.snippet && (
+        <blockquote className="msg-animate mt-2 rounded-xl border border-orange-200 bg-orange-50/60 px-3.5 py-2.5 text-[12.5px] leading-relaxed text-slate-600">
+          <span className="mb-1 block text-[11px] font-semibold text-orange-700">
+            [{activeSource.id}] {activeSource.title}
+            {activeSource.page ? ` · page ${activeSource.page}` : ""}
+          </span>
+          {activeSource.snippet}
+          {activeSource.snippet.length >= 280 ? "…" : ""}
+        </blockquote>
+      )}
+    </div>
+  );
+}
+
 // ── Chat message ───────────────────────────────────────────────
 function ChatMessage({
   msg,
@@ -557,6 +736,7 @@ function ChatMessage({
   onRegenerate?: () => void;
 }) {
   const isUser = msg.role === "user";
+  const [activeSource, setActiveSource] = useState<number | null>(null);
 
   if (isUser) {
     return (
@@ -582,15 +762,18 @@ function ChatMessage({
       </div>
       <div className="flex-1 min-w-0">
         <div className="bg-white border border-slate-200 rounded-2xl rounded-tl-sm px-5 py-4 shadow-sm">
+          {msg.streaming && !msg.content ? (
+            <AgentStatus label={msg.status ?? "Thinking…"} />
+          ) : (
           <div
-            className="prose prose-sm max-w-none leading-relaxed
+            className={`prose prose-sm max-w-none leading-relaxed ${msg.streaming ? "aroma-streaming" : ""}
               prose-p:text-slate-700 prose-p:leading-relaxed
               prose-headings:text-slate-900 prose-headings:font-semibold
               prose-code:bg-orange-50 prose-code:text-orange-600 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-xs prose-code:before:content-[''] prose-code:after:content-['']
               prose-a:text-orange-600 prose-a:no-underline hover:prose-a:underline
               prose-strong:text-slate-900 prose-li:text-slate-700
               prose-ul:space-y-1 prose-ol:space-y-1
-              prose-blockquote:border-l-orange-400 prose-blockquote:text-slate-500"
+              prose-blockquote:border-l-orange-400 prose-blockquote:text-slate-500`}
           >
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
@@ -612,23 +795,52 @@ function ChatMessage({
                 pre({ children }: any) {
                   return <>{children}</>;
                 },
+                a({ href, children }: { href?: string; children?: React.ReactNode }) {
+                  const cite = typeof href === "string" && href.startsWith("#cite-") ? Number(href.slice(6)) : null;
+                  if (cite !== null) {
+                    const source = msg.sources?.find((s) => s.id === cite);
+                    return (
+                      <button
+                        type="button"
+                        onClick={() => setActiveSource((current) => (current === cite ? null : cite))}
+                        title={source ? `${source.title}${source.page ? ` · page ${source.page}` : ""}` : undefined}
+                        className={`not-prose mx-0.5 inline-flex h-[18px] min-w-[18px] -translate-y-px items-center justify-center rounded-md px-1 align-middle text-[10.5px] font-semibold transition-colors ${
+                          activeSource === cite ? "bg-orange-500 text-white" : "bg-orange-100 text-orange-700 hover:bg-orange-200"
+                        }`}
+                      >
+                        {children}
+                      </button>
+                    );
+                  }
+                  return (
+                    <a href={href} target="_blank" rel="noopener noreferrer">
+                      {children}
+                    </a>
+                  );
+                },
               }}
             >
-              {msg.content}
+              {linkCitations(msg.content, msg.sources)}
             </ReactMarkdown>
           </div>
+          )}
         </div>
+        {!!msg.sources?.length && (
+          <SourceList sources={msg.sources} active={activeSource} onSelect={setActiveSource} />
+        )}
         {msg.audio && (
           <div className="mt-2 ml-1">
-            <audio controls className="h-8 w-full max-w-xs rounded-full">
+            <audio controls autoPlay={msg.autoPlay} className="h-8 w-full max-w-xs rounded-full">
               <source src={`${API}${msg.audio}`} />
             </audio>
           </div>
         )}
-        <MessageActions
-          content={msg.content}
-          onRegenerate={isLastAi ? onRegenerate : undefined}
-        />
+        {!msg.streaming && (
+          <MessageActions
+            content={msg.content}
+            onRegenerate={isLastAi ? onRegenerate : undefined}
+          />
+        )}
       </div>
     </div>
   );
@@ -786,85 +998,89 @@ function EmptyState({ onSuggestion }: { onSuggestion: (s: string) => void }) {
   );
 }
 
-function MCPPanel({ onClose }: { onClose: () => void }) {
-  const [servers, setServers] = useState<MCPServer[]>([]);
-  const [name, setName] = useState("");
-  const [transport, setTransport] = useState<"http" | "sse" | "stdio">("http");
-  const [url, setUrl] = useState("");
-  const [command, setCommand] = useState("");
-  const [args, setArgs] = useState("");
-  const [status, setStatus] = useState("");
 
-  const loadServers = useCallback(async () => {
-    try {
-      const response = await axios.get<MCPServer[]>(`${API}/mcp/servers`);
-      setServers(response.data);
-    } catch {
-      setStatus("Could not load MCP servers. Is the backend running?");
-    }
-  }, []);
 
-  useEffect(() => {
-    const timer = window.setTimeout(() => { void loadServers(); }, 0);
-    return () => window.clearTimeout(timer);
-  }, [loadServers]);
+// ── Main component ─────────────────────────────────────────────
+function initials(name: string): string {
+  const parts = name.trim().split(/\s+/);
+  return ((parts[0]?.[0] ?? "") + (parts.length > 1 ? parts[parts.length - 1][0] : "")).toUpperCase() || "?";
+}
 
-  const addServer = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setStatus("");
-    try {
-      await axios.post(`${API}/mcp/servers`, {
-        name,
-        transport,
-        ...(transport === "stdio"
-          ? { command, args: args.trim() ? args.trim().split(/\s+/) : [] }
-          : { url }),
-      });
-      setName(""); setUrl(""); setCommand(""); setArgs("");
-      setStatus("Server added. It will be available in the next chat message.");
-      await loadServers();
-    } catch (error: unknown) {
-      setStatus(axios.isAxiosError(error) ? String(error.response?.data?.detail ?? "Could not add server.") : "Could not add server.");
-    }
-  };
-
-  const action = async (server: MCPServer, operation: "enable" | "disable" | "test" | "delete") => {
-    try {
-      if (operation === "delete") await axios.delete(`${API}/mcp/servers/${server.id}`);
-      else if (operation === "test") {
-        const response = await axios.post(`${API}/mcp/servers/${server.id}/test`);
-        setStatus(response.data.reachable ? `Connected: ${response.data.tools.map((tool: { name: string }) => tool.name).join(", ") || "no tools returned"}` : `Connection failed: ${response.data.error}`);
-      } else await axios.post(`${API}/mcp/servers/${server.id}/${operation}`);
-      await loadServers();
-    } catch {
-      setStatus("MCP server action failed.");
-    }
-  };
-
+function SplashScreen({ error, onRetry }: { error?: boolean; onRetry?: () => void }) {
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/35 p-4" onMouseDown={onClose}>
-      <section className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-5 shadow-2xl" onMouseDown={(event) => event.stopPropagation()}>
-        <div className="flex items-start justify-between gap-4 mb-5">
-          <div><h2 className="text-lg font-semibold text-slate-800">MCP Servers</h2><p className="text-sm text-slate-500 mt-1">Connect tools that Aroma can use during chat.</p></div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-800 text-xl" aria-label="Close MCP servers">×</button>
+    <div className="flex min-h-dvh flex-col items-center justify-center gap-5 bg-white font-sans">
+      <div className={`flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-400 to-rose-500 shadow-md shadow-rose-500/20 ${error ? "" : "animate-pulse"}`}>
+        <span className="text-lg font-black text-white">A</span>
+      </div>
+      {error ? (
+        <div className="text-center">
+          <p className="text-[14px] font-medium text-slate-800">Can&apos;t reach the server</p>
+          <p className="mt-1 text-[13px] text-slate-500">Make sure the backend is running, then try again.</p>
+          <button onClick={onRetry} className="mt-4 rounded-xl bg-slate-900 px-4 py-2 text-[13px] font-medium text-white hover:bg-slate-800">
+            Try again
+          </button>
         </div>
-        <form onSubmit={addServer} className="grid grid-cols-1 sm:grid-cols-2 gap-3 rounded-xl border border-slate-200 p-3">
-          <input required value={name} onChange={(event) => setName(event.target.value)} placeholder="Server name" className="rounded-lg border border-slate-200 px-3 py-2 text-sm" />
-          <select value={transport} onChange={(event) => setTransport(event.target.value as "http" | "sse" | "stdio")} className="rounded-lg border border-slate-200 px-3 py-2 text-sm"><option value="http">HTTP</option><option value="sse">SSE</option><option value="stdio">STDIO (local command)</option></select>
-          {transport === "stdio" ? <><input required value={command} onChange={(event) => setCommand(event.target.value)} placeholder="Command, e.g. npx" className="rounded-lg border border-slate-200 px-3 py-2 text-sm" /><input value={args} onChange={(event) => setArgs(event.target.value)} placeholder="Arguments, space-separated" className="rounded-lg border border-slate-200 px-3 py-2 text-sm" /></> : <input required value={url} onChange={(event) => setUrl(event.target.value)} placeholder="https://server.example/mcp" className="sm:col-span-2 rounded-lg border border-slate-200 px-3 py-2 text-sm" />}
-          <button className="sm:col-span-2 rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-800">Add MCP server</button>
-        </form>
-        {status && <p className="mt-3 text-sm text-slate-600">{status}</p>}
-        <div className="mt-4 space-y-2">
-          {servers.length === 0 ? <p className="text-sm text-slate-400">No MCP servers configured.</p> : servers.map((server) => <div key={server.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 px-3 py-3"><div><p className="text-sm font-medium text-slate-800">{server.name} {!server.enabled && <span className="text-slate-400">(disabled)</span>}</p><p className="text-xs text-slate-500">{server.transport.toUpperCase()} · {server.url || server.command}</p></div><div className="flex gap-2 text-xs"><button onClick={() => void action(server, "test")} className="text-slate-600 hover:text-slate-950">Test</button><button onClick={() => void action(server, server.enabled ? "disable" : "enable")} className="text-orange-600 hover:text-orange-800">{server.enabled ? "Disable" : "Enable"}</button><button onClick={() => void action(server, "delete")} className="text-rose-600 hover:text-rose-800">Delete</button></div></div>)}
-        </div>
-      </section>
+      ) : (
+        <span className="sr-only">Loading</span>
+      )}
     </div>
   );
 }
 
-// ── Main component ─────────────────────────────────────────────
 export default function Home() {
+  const router = useRouter();
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [failed, setFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    getCurrentUser()
+      .then((current) => {
+        if (cancelled) return;
+        if (current) setUser(current);
+        else router.replace("/login");
+      })
+      .catch(() => {
+        if (!cancelled) setFailed(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [router, attempt]);
+
+  // If the session expires mid-use, any API call returns 401: send the user back to sign in.
+  useEffect(() => {
+    const id = axios.interceptors.response.use(undefined, (error) => {
+      if (axios.isAxiosError(error) && error.response?.status === 401) router.replace("/login");
+      return Promise.reject(error);
+    });
+    return () => axios.interceptors.response.eject(id);
+  }, [router]);
+
+  const handleLogout = useCallback(async () => {
+    try {
+      await logout();
+    } finally {
+      router.replace("/login");
+    }
+  }, [router]);
+
+  if (failed)
+    return (
+      <SplashScreen
+        error
+        onRetry={() => {
+          setFailed(false);
+          setAttempt((n) => n + 1);
+        }}
+      />
+    );
+  if (!user) return <SplashScreen />;
+  return <ChatApp user={user} onLogout={handleLogout} />;
+}
+
+function ChatApp({ user, onLogout }: { user: AuthUser; onLogout: () => void }) {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [sessions, setSessions] = useState<Session[]>([]);
@@ -873,9 +1089,14 @@ export default function Home() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [recording, setRecording] = useState(false);
+  const [voiceError, setVoiceError] = useState("");
+  const recordingStartedAt = useRef(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [isDragging, setIsDragging] = useState(false);
   const [mcpOpen, setMcpOpen] = useState(false);
+  const [view, setView] = useState<View>("chat");
+  // The project the current chat belongs to (its documents are searched too).
+  const [chatProject, setChatProject] = useState<ProjectRef | null>(null);
   const dragCounter = useRef(0);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -892,17 +1113,24 @@ export default function Home() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
 
-  useEffect(() => {
-    axios.get(`${API}/sessions`).then((res) => {
+  const refreshSessions = useCallback(async () => {
+    try {
+      const res = await axios.get<Session[]>(`${API}/sessions`);
       if (Array.isArray(res.data)) {
         const sorted = res.data.sort(
-          (a: any, b: any) =>
+          (a, b) =>
             new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
         );
         setSessions(sorted);
       }
-    });
+    } catch {
+      // The history panel just stays as it was.
+    }
   }, []);
+
+  useEffect(() => {
+    void refreshSessions();
+  }, [refreshSessions]);
 
   useEffect(() => {
     return () => {
@@ -954,20 +1182,30 @@ export default function Home() {
     }
   }, []);
 
-  const loadSession = async (id: string) => {
+  const loadSession = async (id: string, project?: ProjectRef) => {
     const res = await axios.get(`${API}/messages/${id}`);
     setMessages(
       res.data.map((m: any) => ({
         role: m.role,
         content: m.content,
+        sources: m.sources,
         id: generateId(),
       })),
     );
     setSessionId(id);
     setSidebarOpen(false);
+    setView("chat");
+    const projectId = sessions.find((s) => s.id === id)?.project_id;
+    if (project) setChatProject(project);
+    else if (projectId) {
+      setChatProject({ id: projectId, name: "Project" });
+      workspaceApi.getProject(projectId).then((p) => setChatProject({ id: p.id, name: p.name })).catch(() => {});
+    } else setChatProject(null);
   };
 
-  const newChat = () => {
+  const newChat = (project: ProjectRef | null = null) => {
+    setChatProject(project);
+    setView("chat");
     objectURLsRef.current.forEach((url) => URL.revokeObjectURL(url));
     objectURLsRef.current = [];
     setSessionId(crypto.randomUUID());
@@ -978,18 +1216,39 @@ export default function Home() {
   };
 
   const startRecording = async () => {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    setVoiceError("");
+    let stream: MediaStream;
+    try {
+      if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") throw new Error("unsupported");
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch (error) {
+      setVoiceError(micErrorMessage(error));
+      return;
+    }
     streamRef.current = stream;
-    const mediaRecorder = new MediaRecorder(stream);
+    const mimeType = VOICE_MIME_TYPES.find((t) => MediaRecorder.isTypeSupported?.(t));
+    const mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
     mediaRecorderRef.current = mediaRecorder;
     audioChunks.current = [];
 
-    mediaRecorder.ondataavailable = (e) => audioChunks.current.push(e.data);
+    mediaRecorder.ondataavailable = (e) => {
+      if (e.data.size) audioChunks.current.push(e.data);
+    };
     mediaRecorder.onstop = () => {
-      sendVoice();
       stream.getTracks().forEach((t) => t.stop());
+      if (Date.now() - recordingStartedAt.current < MIN_RECORDING_MS) {
+        setVoiceError("That was too short. Hold on a moment longer while you speak.");
+        return;
+      }
+      void sendVoice(mediaRecorder.mimeType || "audio/webm");
+    };
+    mediaRecorder.onerror = () => {
+      setRecording(false);
+      stream.getTracks().forEach((t) => t.stop());
+      setVoiceError("Recording stopped unexpectedly. Please try again.");
     };
 
+    recordingStartedAt.current = Date.now();
     mediaRecorder.start();
     setRecording(true);
 
@@ -1004,39 +1263,40 @@ export default function Home() {
   const stopRecording = () => {
     mediaRecorderRef.current?.stop();
     setRecording(false);
-    streamRef.current?.getTracks().forEach((t) => t.stop());
   };
 
-  const sendVoice = async () => {
-    const blob = new Blob(audioChunks.current, { type: "audio/webm" });
-    const voiceFile = new File([blob], "voice.webm");
+  const sendVoice = async (mimeType: string) => {
+    const blob = new Blob(audioChunks.current, { type: mimeType });
+    const extension = mimeType.includes("mp4") ? "mp4" : mimeType.includes("ogg") ? "ogg" : "webm";
     const formData = new FormData();
-    formData.append("file", voiceFile);
+    formData.append("file", new File([blob], `voice.${extension}`, { type: mimeType }));
+    // Voice joins the open chat (and its project) like a typed message.
+    formData.append("session_id", sessionId);
+    if (chatProject) formData.append("project_id", chatProject.id);
+
+    const aiId = generateId();
+    setMessages((prev) => [...prev, { role: "ai", content: "", id: aiId, streaming: true, status: "Transcribing your question…" }]);
     setLoading(true);
 
     try {
       const res = await axios.post(`${API}/voice`, formData);
-      setMessages((prev) => [
-        ...prev,
-        { role: "user", content: `🎤 ${res.data.user_text}`, id: generateId() },
-        {
-          role: "ai",
-          content: res.data.response,
-          audio: res.data.audio_url,
-          id: generateId(),
-        },
-      ]);
-    } catch {
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "ai",
-          content: "⚠️ Voice processing failed. Please try again.",
-          id: generateId(),
-        },
-      ]);
+      setMessages((prev) =>
+        prev.flatMap((m) =>
+          m.id === aiId
+            ? [
+                { role: "user" as const, content: `🎤 ${res.data.user_text}`, id: generateId() },
+                { role: "ai" as const, content: res.data.response, audio: res.data.audio_url ?? undefined, autoPlay: true, id: aiId },
+              ]
+            : [m],
+        ),
+      );
+    } catch (error) {
+      setMessages((prev) => prev.filter((m) => m.id !== aiId));
+      const detail = axios.isAxiosError(error) ? error.response?.data?.detail : undefined;
+      setVoiceError(typeof detail === "string" ? detail : "Voice processing failed. Please try again.");
     } finally {
       setLoading(false);
+      void refreshSessions();
     }
   };
 
@@ -1071,6 +1331,18 @@ export default function Home() {
         });
       }
 
+      // The AI reply appears immediately and fills in as the stream arrives.
+      const aiId = generateId();
+      newMessages.push({
+        role: "ai",
+        content: "",
+        id: aiId,
+        streaming: true,
+        status: currentFile ? `Uploading ${currentFile.name}…` : "Thinking…",
+      });
+      const updateAi = (change: (m: Message) => Message) =>
+        setMessages((prev) => prev.map((m) => (m.id === aiId ? change(m) : m)));
+
       setMessages((prev) => [...prev, ...newMessages]);
       setInput("");
       setFile(null);
@@ -1085,29 +1357,47 @@ export default function Home() {
           await axios.post(`${API}/upload`, fd);
         }
 
-        const res = await axios.post(`${API}/chat`, {
+        await streamChat({
           message: text || "Summarize document",
           session_id: sessionId,
+          // Only read by the server when this message starts the chat.
+          ...(chatProject ? { project_id: chatProject.id } : {}),
+        }, (event) => {
+          switch (event.type) {
+            case "status":
+              updateAi((m) => ({ ...m, status: event.label }));
+              break;
+            case "sources":
+              updateAi((m) => ({ ...m, sources: [...(m.sources ?? []), ...event.sources] }));
+              break;
+            case "token":
+              updateAi((m) => ({ ...m, content: m.content + event.text }));
+              break;
+            case "reset":
+              updateAi((m) => ({ ...m, content: "" }));
+              break;
+            case "done":
+              updateAi((m) => ({ ...m, content: event.response, sources: event.sources, streaming: false, status: undefined }));
+              break;
+            case "error":
+              updateAi((m) => ({ ...m, content: event.message, streaming: false, status: undefined }));
+              break;
+          }
         });
-
-        setMessages((prev) => [
-          ...prev,
-          { role: "ai", content: res.data.response, id: generateId() },
-        ]);
-      } catch {
-        setMessages((prev) => [
-          ...prev,
-          {
-            role: "ai",
-            content: "⚠️ Something went wrong. Please try again.",
-            id: generateId(),
-          },
-        ]);
+      } catch (error) {
+        if (error instanceof UnauthorizedError) {
+          window.location.assign("/login");
+          return;
+        }
+        updateAi((m) => ({ ...m, content: "⚠️ Something went wrong. Please try again.", streaming: false, status: undefined }));
       } finally {
+        // If the connection dropped mid-answer, keep what arrived and stop the spinner.
+        updateAi((m) => (m.streaming ? { ...m, streaming: false, status: undefined } : m));
         setLoading(false);
+        void refreshSessions(); // new chats and their titles show up in History
       }
     },
-    [input, file, sessionId],
+    [input, file, sessionId, chatProject, refreshSessions],
   );
 
   const regenerateLast = useCallback(() => {
@@ -1119,6 +1409,45 @@ export default function Home() {
     });
     sendMessage(lastUser.content);
   }, [messages, sendMessage]);
+
+  const renameChat = async (id: string, title: string) => {
+    try {
+      await workspaceApi.renameChat(id, title);
+    } finally {
+      void refreshSessions();
+    }
+  };
+
+  const deleteChat = async (id: string) => {
+    if (!window.confirm("Delete this chat? Its messages and attached files will be removed.")) return;
+    try {
+      await workspaceApi.deleteChat(id);
+      if (id === sessionId) newChat();
+    } finally {
+      void refreshSessions();
+    }
+  };
+
+  const clearHistory = async () => {
+    if (!window.confirm("Delete all chats outside your projects? This can't be undone.")) return;
+    try {
+      await workspaceApi.clearChats();
+      newChat();
+    } finally {
+      void refreshSessions();
+    }
+  };
+
+  const useTemplate = (prompt: string) => {
+    setView("chat");
+    setInput(prompt);
+    window.setTimeout(() => inputRef.current?.focus(), 0);
+  };
+
+  const openView = (next: View) => {
+    setView(next);
+    setSidebarOpen(false);
+  };
 
   const filteredSessions = sessions.filter((s) =>
     (s.title || "").toLowerCase().includes(searchQuery.toLowerCase()),
@@ -1242,7 +1571,8 @@ export default function Home() {
 
           <nav className="flex-1 overflow-y-auto px-3 space-y-1">
             <NavItem
-              active
+              active={view === "chat"}
+              onClick={() => openView("chat")}
               label="AI Chat Helper"
               icon={
                 <svg
@@ -1261,6 +1591,8 @@ export default function Home() {
               }
             />
             <NavItem
+              active={view === "templates"}
+              onClick={() => openView("templates")}
               label="Templates"
               icon={
                 <svg
@@ -1279,6 +1611,8 @@ export default function Home() {
               }
             />
             <NavItem
+              active={view === "projects"}
+              onClick={() => openView("projects")}
               label="My Projects"
               icon={
                 <svg
@@ -1297,6 +1631,8 @@ export default function Home() {
               }
             />
             <NavItem
+              active={view === "stats"}
+              onClick={() => openView("stats")}
               label="Statistics"
               icon={
                 <svg
@@ -1340,6 +1676,8 @@ export default function Home() {
               }
             />
             <NavItem
+              active={view === "help"}
+              onClick={() => openView("help")}
               label="Updates & FAQ"
               icon={
                 <svg
@@ -1359,8 +1697,21 @@ export default function Home() {
             />
           </nav>
 
-          <div className="px-4 py-3 border-t border-slate-200">
-            <button className="flex items-center gap-2 text-[12.5px] text-slate-400 hover:text-slate-700 transition-colors">
+          <div className="px-3 py-3 border-t border-slate-200">
+            <div className="flex items-center gap-2.5 rounded-xl px-1.5 py-1">
+              <div className="w-8 h-8 shrink-0 rounded-full bg-gradient-to-br from-orange-400 to-rose-500 flex items-center justify-center shadow-sm">
+                <span className="text-[11px] font-bold text-white">{initials(user.name)}</span>
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[12.5px] font-semibold text-slate-800 truncate">{user.name}</p>
+                <p className="text-[11.5px] text-slate-400 truncate">{user.email}</p>
+              </div>
+            <button
+              onClick={onLogout}
+              title="Log out"
+              aria-label="Log out"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/70 transition-colors"
+            >
               <svg
                 className="w-4 h-4"
                 fill="none"
@@ -1374,8 +1725,8 @@ export default function Home() {
                   d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
                 />
               </svg>
-              Log out
             </button>
+            </div>
           </div>
         </aside>
 
@@ -1406,14 +1757,27 @@ export default function Home() {
                 </svg>
               </button>
               <h1 className="text-[15px] font-semibold text-slate-800 truncate">
-                {sessions.find((s) => s.id === sessionId)?.title ||
-                  "AI Chat Helper"}
+                {view === "chat"
+                  ? sessions.find((s) => s.id === sessionId)?.title || "AI Chat Helper"
+                  : VIEW_TITLES[view]}
               </h1>
+              {view === "chat" && chatProject && (
+                <button
+                  onClick={() => openView("projects")}
+                  title="This chat also searches the project's documents"
+                  className="hidden sm:inline-flex shrink-0 items-center gap-1 rounded-lg border border-orange-200 bg-orange-50 px-2 py-0.5 text-[11.5px] font-medium text-orange-700 hover:bg-orange-100"
+                >
+                  <svg aria-hidden className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
+                  </svg>
+                  {chatProject.name}
+                </button>
+              )}
             </div>
 
             <div className="flex items-center gap-2.5 flex-1 max-w-md">
               {/* Search — single clean hover/focus state defined in .search-input, no layered effects */}
-              <div className="search-input relative flex-1 hidden sm:flex items-center bg-slate-100 border border-transparent rounded-xl px-3 py-2">
+              <div className={`search-input relative flex-1 hidden ${view === "chat" ? "sm:flex" : ""} items-center bg-slate-100 border border-transparent rounded-xl px-3 py-2`}>
                 <svg
                   className="w-3.5 h-3.5 text-slate-400 flex-shrink-0"
                   fill="none"
@@ -1474,7 +1838,7 @@ export default function Home() {
                 </svg>
               </button>
               <button
-                onClick={newChat}
+                onClick={() => newChat(view === "chat" ? chatProject : null)}
                 className="hidden md:flex items-center gap-1.5 ml-1 px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-[12.5px] font-medium transition-colors duration-150"
               >
                 <svg
@@ -1495,6 +1859,18 @@ export default function Home() {
             </div>
           </header>
 
+          {view === "templates" ? (
+            <TemplatesView onUse={useTemplate} />
+          ) : view === "projects" ? (
+            <ProjectsView
+              onOpenChat={(id, project) => void loadSession(id, project)}
+              onNewChat={(project) => newChat(project)}
+            />
+          ) : view === "stats" ? (
+            <StatsView />
+          ) : view === "help" ? (
+            <HelpView />
+          ) : (
           <div className="flex-1 flex min-h-0">
             {/* Messages column */}
             <div className="flex-1 flex flex-col min-w-0">
@@ -1512,7 +1888,7 @@ export default function Home() {
                         />
                       </div>
                     ))}
-                    {loading && <ThinkingBubble />}
+                    {loading && !messages.some((m) => m.streaming) && <ThinkingBubble />}
                     <div ref={bottomRef} />
                   </div>
                 )}
@@ -1521,6 +1897,17 @@ export default function Home() {
               {/* ── Input area ── */}
               <div className="px-4 pb-4 pt-2.5 bg-white border-t border-slate-200 flex-shrink-0">
                 <div className="max-w-[680px] mx-auto">
+                  {voiceError && (
+                    <div role="alert" className="msg-animate mb-2 flex items-start gap-2.5 rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-2.5 text-[12.5px] leading-relaxed text-rose-700">
+                      <svg aria-hidden className="mt-px h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 3l18 18M9 9v2a3 3 0 005.1 2.1M15 9.3V5a3 3 0 00-5.7-1.3M19 11a7 7 0 01-1.2 3.9M5 11a7 7 0 0011.6 5.3M12 18v3" />
+                      </svg>
+                      <span className="flex-1">{voiceError}</span>
+                      <button onClick={() => setVoiceError("")} aria-label="Dismiss" className="-m-1 rounded-lg p-1 text-rose-400 hover:bg-rose-100 hover:text-rose-700">
+                        <svg aria-hidden className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeWidth={2.2} d="M6 6l12 12M18 6L6 18" /></svg>
+                      </button>
+                    </div>
+                  )}
                   {file && (
                     <div className="mb-2">
                       <FileChip
@@ -1692,6 +2079,8 @@ export default function Home() {
                     session={s}
                     active={s.id === sessionId}
                     onClick={() => loadSession(s.id)}
+                    onRename={(title) => void renameChat(s.id, title)}
+                    onDelete={() => void deleteChat(s.id)}
                   />
                 ))}
                 {filteredSessions.length === 0 && (
@@ -1704,8 +2093,8 @@ export default function Home() {
               </div>
               <div className="p-3 border-t border-slate-200">
                 <button
-                  onClick={newChat}
-                  className="w-full flex items-center justify-center gap-1.5 text-[12.5px] font-medium text-slate-500 hover:text-slate-800 px-3 py-2 rounded-xl hover:bg-slate-100 transition-colors"
+                  onClick={() => void clearHistory()}
+                  className="w-full flex items-center justify-center gap-1.5 text-[12.5px] font-medium text-slate-500 hover:text-rose-600 px-3 py-2 rounded-xl hover:bg-slate-100 transition-colors"
                 >
                   <svg
                     className="w-3.5 h-3.5"
@@ -1725,6 +2114,7 @@ export default function Home() {
               </div>
             </aside>
           </div>
+          )}
         </div>
       </div>
     </>

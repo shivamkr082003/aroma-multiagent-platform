@@ -1,0 +1,128 @@
+{
+  "corpus_chunks": 17,
+  "questions": 40,
+  "k": 5,
+  "embedding_model": "BAAI/bge-small-en-v1.5",
+  "retrieval": {
+    "dense_mmr": {
+      "overall": {
+        "n": 40,
+        "hit@1": 0.65,
+        "hit@3": 0.725,
+        "hit@5": 0.8,
+        "mrr": 0.695,
+        "latency_ms_p50": 12.2
+      },
+      "exact": {
+        "n": 19,
+        "hit@1": 0.737,
+        "hit@3": 0.789,
+        "hit@5": 0.842,
+        "mrr": 0.768,
+        "latency_ms_p50": 12.2
+      },
+      "semantic": {
+        "n": 21,
+        "hit@1": 0.571,
+        "hit@3": 0.667,
+        "hit@5": 0.762,
+        "mrr": 0.63,
+        "latency_ms_p50": 12.3
+      },
+      "misses": [
+        "What happens if my attendance is 70 percent in a course?",
+        "I was sick and missed my end-sem exam. What can I do?",
+        "When do I get my security deposit back after leaving the hostel?",
+        "How many expenses were recorded during the Zephyr pilot?",
+        "After how many minutes does the Zephyr JWT expire?",
+        "Who can approve large reimbursements in Zephyr?",
+        "How is data on the phone protected?",
+        "What LoRA rank and alpha were used?"
+      ]
+    },
+    "dense": {
+      "overall": {
+        "n": 40,
+        "hit@1": 0.65,
+        "hit@3": 0.875,
+        "hit@5": 0.95,
+        "mrr": 0.767,
+        "latency_ms_p50": 6.2
+      },
+      "exact": {
+        "n": 19,
+        "hit@1": 0.737,
+        "hit@3": 0.895,
+        "hit@5": 1.0,
+        "mrr": 0.842,
+        "latency_ms_p50": 6.2
+      },
+      "semantic": {
+        "n": 21,
+        "hit@1": 0.571,
+        "hit@3": 0.857,
+        "hit@5": 0.905,
+        "mrr": 0.7,
+        "latency_ms_p50": 6.2
+      },
+      "misses": [
+        "Who can approve large reimbursements in Zephyr?",
+        "What features are planned for the next version of Zephyr?"
+      ]
+    },
+    "hybrid": {
+      "overall": {
+        "n": 40,
+        "hit@1": 0.65,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "mrr": 0.821,
+        "latency_ms_p50": 7.5
+      },
+      "exact": {
+        "n": 19,
+        "hit@1": 0.737,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "mrr": 0.868,
+        "latency_ms_p50": 7.6
+      },
+      "semantic": {
+        "n": 21,
+        "hit@1": 0.571,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "mrr": 0.778,
+        "latency_ms_p50": 7.4
+      },
+      "misses": []
+    },
+    "hybrid_rerank": {
+      "overall": {
+        "n": 40,
+        "hit@1": 0.825,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "mrr": 0.904,
+        "latency_ms_p50": 123.3
+      },
+      "exact": {
+        "n": 19,
+        "hit@1": 0.895,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "mrr": 0.947,
+        "latency_ms_p50": 123.3
+      },
+      "semantic": {
+        "n": 21,
+        "hit@1": 0.762,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "mrr": 0.865,
+        "latency_ms_p50": 123.3
+      },
+      "misses": []
+    }
+  }
+}

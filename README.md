@@ -203,6 +203,70 @@ QDRANT_URL=
 
 ---
 
+# 🔐 Authentication
+
+Email/password accounts with a signed session in an **httpOnly cookie** (JavaScript can't read it). Every chat, upload, voice and MCP endpoint is scoped to the signed-in user.
+
+* Passwords are hashed with **scrypt** (Python stdlib), never stored in plain text.
+* Sessions are **JWTs** signed with `AUTH_SECRET_KEY`, valid for 7 days by default.
+* After 5 wrong passwords, an email is locked for 15 minutes (counters in Redis).
+* Users can't read or write each other's chats, documents or MCP servers.
+
+```bash
+python -c "import secrets; print(secrets.token_urlsafe(48))"   # put in AUTH_SECRET_KEY
+alembic upgrade head                                            # creates the users table
+```
+
+Open the frontend at `http://localhost:3000` (it calls the API on the same hostname, port 8000).
+When the frontend and API are on different domains in production, set `NEXT_PUBLIC_API_URL`, `AUTH_COOKIE_SECURE=true` and `AUTH_COOKIE_SAMESITE=none`.
+
+---
+
+# 🔎 Retrieval & Evaluation
+
+Document chat uses **hybrid search + reranking** ([retrieval.py](retrieval.py)):
+dense vectors (BGE-small, local) find passages by meaning, **BM25** finds exact
+names, numbers and codes, **Reciprocal Rank Fusion** merges both lists, and a
+**cross-encoder** reranks the top 20. Answers cite passages inline as `[1]`.
+
+Measured with `python -m evaluation.run_eval` on 40 labelled questions over 4 documents
+(19 exact-fact, 21 paraphrased), top-5 retrieval:
+
+| Mode | Hit@1 | Hit@3 | Hit@5 | MRR | MRR (exact) | MRR (paraphrased) | p50 latency |
+|---|---|---|---|---|---|---|---|
+| Dense + MMR (original) | 0.650 | 0.725 | 0.800 | 0.695 | 0.768 | 0.630 | 12 ms |
+| Dense | 0.650 | 0.875 | 0.950 | 0.767 | 0.842 | 0.700 | 6 ms |
+| Hybrid (dense + BM25) | 0.650 | 1.000 | 1.000 | 0.821 | 0.868 | 0.778 | 8 ms |
+| **Hybrid + rerank** (default) | **0.825** | **1.000** | **1.000** | **0.904** | **0.947** | **0.865** | 123 ms |
+
+`--answers` adds LLM-judged **correctness** and **faithfulness** (RAGAS-style) using Groq.
+Results are saved to `benchmark-results/retrieval-eval.json`. Switch modes with `RETRIEVAL_MODE`.
+
+---
+
+# 🔌 MCP Servers
+
+Aroma can use tools from your own [MCP](https://modelcontextprotocol.io) servers during chat. Add them from **MCP Servers** in the sidebar, or via the API (`/mcp/servers`).
+
+* **HTTP / SSE** servers work out of the box.
+* **STDIO** servers run a local process on the backend host, so they are **off by default**. Enable them only on a backend that you alone use:
+
+```env
+MCP_ALLOW_STDIO=true
+MCP_STDIO_ALLOWED_COMMANDS=npx,uvx   # bare command names only
+```
+
+* Server `headers` / `env` (API keys) are encrypted at rest and always masked in API responses. Set a key before storing them:
+
+```bash
+python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+# put the output in MCP_SECRET_KEY; losing it makes stored secrets unreadable
+```
+
+Run the tests with `pytest`.
+
+---
+
 # 📈 Roadmap
 
 * ✅ Multi-Agent Architecture
@@ -211,8 +275,10 @@ QDRANT_URL=
 * ✅ PDF Chat
 * ✅ RAG Pipeline
 * ✅ Redis Cache
-* ⏳ Multi-Document Memory
-* ⏳ Authentication
+* ✅ MCP Tool Servers
+* ✅ Multi-Document Projects (shared documents across chats)
+* ✅ Prompt Templates & Usage Statistics
+* ✅ Authentication
 * ⏳ Team Collaboration
 * ⏳ Cloud Deployment
 

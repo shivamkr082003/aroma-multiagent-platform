@@ -41,7 +41,7 @@ playwright>=1.44.0            # ← NEW: headless browser fallback for JS-render
 #  RAG CORE
 # ===========================
 qdrant-client
-sentence-transformers
+sentence-transformers          # free local embeddings for document chat (rag_store.py)
 pypdf
 unstructured
 tiktoken
@@ -49,7 +49,7 @@ tiktoken
 # ===========================
 #  ADVANCED RAG
 # ===========================
-rank-bm25
+rank-bm25                      # keyword half of hybrid search (retrieval.py)
 numpy
 scikit-learn
 whoosh
@@ -79,3 +79,15 @@ pydantic-settings              # ← NEW: for typed settings/config management
 # ===========================
 langchain-mcp-adapters>=0.1.0
 mcp>=1.0.0,<2.0.0
+cryptography                   # encrypts MCP headers/env at rest
+
+# ===========================
+#  AUTH
+# ===========================
+PyJWT                          # signed session tokens (passwords use stdlib scrypt)
+
+# ===========================
+#  TESTING
+# ===========================
+pytest
+pytest-asyncio
