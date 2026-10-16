@@ -37,7 +37,8 @@ WORKDIR /home/user/app
 
 # Bake the browser (JS-heavy page scraping) and both models into the image,
 # so the first request doesn't wait for ~250 MB of downloads.
-RUN python -m playwright install chromium \
+RUN for attempt in 1 2 3; do python -m playwright install chromium && break; \
+        [ "$attempt" = 3 ] && exit 1; echo "chromium download failed, retrying"; sleep 15; done \
     && python -c "from sentence_transformers import SentenceTransformer, CrossEncoder; \
 SentenceTransformer('BAAI/bge-small-en-v1.5'); CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')"
 
