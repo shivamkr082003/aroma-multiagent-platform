@@ -2,12 +2,7 @@
 
 <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=12,20,6&height=200&section=header&text=Aroma%20AI&fontSize=64&fontColor=ffffff&animation=fadeIn&fontAlignY=36&desc=Multi-agent%20assistant%20for%20your%20documents%2C%20voice%2C%20the%20web%20and%20your%20tools&descAlignY=58&descSize=17" />
 
-<a href="https://github.com/shivamkr082003/aroma-multiagent-platform/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/shivamkr082003/aroma-multiagent-platform/ci.yml?branch=main&style=for-the-badge&label=CI&labelColor=1a1a1a" /></a>
-<img src="https://img.shields.io/badge/tests-75%20passing-2ea44f?style=for-the-badge&labelColor=1a1a1a" />
-<img src="https://img.shields.io/badge/Python-3.12-3776AB?style=for-the-badge&logo=python&logoColor=white&labelColor=1a1a1a" />
-<img src="https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white&labelColor=1a1a1a" />
-<img src="https://img.shields.io/badge/Next.js-16-000000?style=for-the-badge&logo=nextdotjs&logoColor=white&labelColor=1a1a1a" />
-<img src="https://img.shields.io/badge/LangGraph-agents-f97316?style=for-the-badge&labelColor=1a1a1a" />
+<a href="https://github.com/shivamkr082003/aroma-multiagent-platform/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/shivamkr082003/aroma-multiagent-platform/ci.yml?branch=main&style=for-the-badge&label=CI&labelColor=1a1a1a" /></a> <img src="https://img.shields.io/badge/Python-3.12-3776AB?style=for-the-badge&logo=python&logoColor=white&labelColor=1a1a1a" /> <img src="https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white&labelColor=1a1a1a" /> <img src="https://img.shields.io/badge/Next.js-16-000000?style=for-the-badge&logo=nextdotjs&logoColor=white&labelColor=1a1a1a" /> <img src="https://img.shields.io/badge/LangGraph-agents-f97316?style=for-the-badge&labelColor=1a1a1a" />
 
 <br/><br/>
 
@@ -43,10 +38,10 @@
 
 <table>
 <tr>
-<td align="center" width="25%"><h3>0.904</h3><sub>retrieval MRR<br/>(was 0.695)</sub></td>
-<td align="center" width="25%"><h3>100%</h3><sub>right passage in top 5<br/>(was 80%)</sub></td>
+<td align="center" width="25%"><h3>0.695 → 0.904</h3><sub>retrieval MRR on our<br/>40-question benchmark</sub></td>
+<td align="center" width="25%"><h3>80% → 100%</h3><sub>right passage in the top 5<br/>(same benchmark)</sub></td>
 <td align="center" width="25%"><h3>75</h3><sub>automated tests<br/>on every push</sub></td>
-<td align="center" width="25%"><h3>~2 s</h3><sub>to answer from<br/>your documents</sub></td>
+<td align="center" width="25%"><h3>27</h3><sub>documented<br/>API endpoints</sub></td>
 </tr>
 </table>
 
@@ -68,36 +63,42 @@
 <table>
 <tr>
 <td width="50%"><b>Answers with citations</b><br/><sub>Click a badge to open the exact passage it came from.</sub><br/><img src="docs/screenshots/04-chat-citations.png" alt="Chat answer with numbered citations and an opened source passage" /></td>
-<td width="50%"><b>Live agent status</b><br/><sub>See each step while the answer is being prepared.</sub><br/><img src="docs/screenshots/06-live-status.png" alt="Live status shown while the agent works" /></td>
+<td width="50%"><b>Web search with sources</b><br/><sub>Fresh questions are answered from the web, with links.</sub><br/><img src="docs/screenshots/05-chat-web-search.png" alt="Answer built from a web search, listing five web sources" /></td>
 </tr>
 <tr>
-<td><b>Web search with sources</b><br/><sub>Fresh questions are answered from the web, with links.</sub><br/><img src="docs/screenshots/05-chat-web-search.png" alt="Answer built from a web search, listing five web sources" /></td>
 <td><b>Projects</b><br/><sub>Documents shared by every chat in the project.</sub><br/><img src="docs/screenshots/08-project-detail.png" alt="Project page with documents and chats" /></td>
-</tr>
-<tr>
-<td><b>All projects</b><br/><img src="docs/screenshots/07-projects.png" alt="Projects overview" /></td>
-<td><b>Prompt templates</b><br/><sub>Ready-made prompts plus your own saved ones.</sub><br/><img src="docs/screenshots/09-templates.png" alt="Templates page" /></td>
-</tr>
-<tr>
 <td><b>Statistics</b><br/><sub>Activity, response time and where answers came from.</sub><br/><img src="docs/screenshots/10-statistics.png" alt="Statistics dashboard" /></td>
-<td><b>MCP servers</b><br/><sub>Connect tool servers; a test lists the tools they offer.</sub><br/><img src="docs/screenshots/11-mcp-servers.png" alt="MCP servers panel with a connected server and its tools" /></td>
+</tr>
+</table>
+
+<details>
+<summary><b>More screenshots</b> — live status, MCP tools, templates, sign-in, mobile and more</summary>
+<br/>
+
+<table>
+<tr>
+<td width="50%"><b>Live agent status</b><br/><img src="docs/screenshots/06-live-status.png" alt="Live status shown while the agent works" /></td>
+<td width="50%"><b>MCP servers</b><br/><img src="docs/screenshots/11-mcp-servers.png" alt="MCP servers panel with a connected server and its tools" /></td>
 </tr>
 <tr>
-<td><b>Sign in</b><br/><sub>Email/password or Google, with a live product preview.</sub><br/><img src="docs/screenshots/01-login.png" alt="Login page" /></td>
-<td><b>Create account</b><br/><sub>Live password-strength checks.</sub><br/><img src="docs/screenshots/02-register.png" alt="Register page" /></td>
+<td><b>Prompt templates</b><br/><img src="docs/screenshots/09-templates.png" alt="Templates page" /></td>
+<td><b>All projects</b><br/><img src="docs/screenshots/07-projects.png" alt="Projects overview" /></td>
+</tr>
+<tr>
+<td><b>Sign in (email or Google)</b><br/><img src="docs/screenshots/01-login.png" alt="Login page" /></td>
+<td><b>Create account</b><br/><img src="docs/screenshots/02-register.png" alt="Register page" /></td>
 </tr>
 <tr>
 <td><b>New chat</b><br/><img src="docs/screenshots/03-chat-home.png" alt="Empty chat with suggestions" /></td>
 <td><b>Updates & FAQ</b><br/><img src="docs/screenshots/12-updates-faq.png" alt="Updates and FAQ page" /></td>
 </tr>
+<tr>
+<td align="center"><b>Mobile sign-in</b><br/><img src="docs/screenshots/14-mobile-login.png" alt="Mobile sign-in" width="60%" /></td>
+<td align="center"><b>Mobile chat</b><br/><img src="docs/screenshots/13-mobile-chat.png" alt="Mobile chat" width="60%" /></td>
+</tr>
 </table>
 
-<div align="center">
-<b>Responsive on mobile</b><br/><br/>
-<img src="docs/screenshots/14-mobile-login.png" alt="Mobile sign-in" width="24%" />
-&nbsp;&nbsp;
-<img src="docs/screenshots/13-mobile-chat.png" alt="Mobile chat" width="24%" />
-</div>
+</details>
 
 ---
 
@@ -414,7 +415,5 @@ Contributions are welcome: fork the repository, create a feature branch, make su
 ### Built by **Shivam Kumar**
 
 <sub>If Aroma helped you, consider giving the repository a ⭐</sub>
-
-<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=12,20,6&height=110&section=footer" />
 
 </div>
