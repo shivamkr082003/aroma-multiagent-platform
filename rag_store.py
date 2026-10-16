@@ -27,9 +27,13 @@ load_dotenv()
 
 logger = logging.getLogger("aroma.rag")
 
-# QDRANT_API_KEY is only needed for Qdrant Cloud; a local Qdrant has none.
-qdrant_client = QdrantClient(url=os.getenv("QDRANT_URL", "http://localhost:6333"),
-                             api_key=os.getenv("QDRANT_API_KEY") or None)
+# QDRANT_API_KEY is only for Qdrant Cloud. Never send it over plain http: a
+# local Qdrant needs no key, and the key in .env may be the cloud one.
+_qdrant_url = os.getenv("QDRANT_URL", "http://localhost:6333")
+qdrant_client = QdrantClient(
+    url=_qdrant_url,
+    api_key=(os.getenv("QDRANT_API_KEY") or None) if _qdrant_url.startswith("https://") else None,
+)
 
 # Payload fields every search filters on; indexed so filtering stays fast as data grows.
 _INDEXED_FIELDS = ("metadata.user_id", "metadata.session_id", "metadata.project_id", "metadata.file_id",
