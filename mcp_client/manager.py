@@ -11,6 +11,14 @@ from .security import check_transport_allowed
 logger = logging.getLogger("aroma.mcp")
 
 
+def _root_cause(exc: BaseException) -> BaseException:
+    """The MCP client wraps failures in (nested) TaskGroup exception groups, whose
+    own message ("unhandled errors in a TaskGroup") says nothing useful."""
+    while isinstance(exc, BaseExceptionGroup) and exc.exceptions:
+        exc = exc.exceptions[0]
+    return exc.__cause__ if isinstance(exc, BaseExceptionGroup) and exc.__cause__ else exc
+
+
 class MCPManager:
     async def load_tools(self, user_id: str, db: Optional[Session] = None) -> list:
         owns_session = db is None
@@ -60,8 +68,9 @@ class MCPManager:
             tools = await self._load_one(name, config)
             return True, [{"name": tool.name, "description": getattr(tool, "description", None)} for tool in tools], None
         except Exception as exc:
-            logger.info("MCP test for '%s' failed: %s", name, exc)
-            return False, [], str(exc)
+            cause = _root_cause(exc)
+            logger.info("MCP test for '%s' failed: %r", name, cause)
+            return False, [], f"{type(cause).__name__}: {cause}"[:300]
 
     async def invalidate_cache(self, user_id: str) -> None:
         await tool_cache.invalidate(user_id)

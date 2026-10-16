@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { authErrorMessage, getCurrentUser, register } from "@/lib/auth";
-import { Divider, FormAlert, GoogleButton, PasswordField, SubmitButton, TextField } from "../_components/fields";
+import { FormAlert, PasswordField, SubmitButton, TextField } from "../_components/fields";
+import { GoogleSignIn } from "../_components/GoogleSignIn";
 
 const RULES = [
   { label: "8+ characters", test: (p: string) => p.length >= 8 },
@@ -64,8 +65,7 @@ export function RegisterForm() {
       <p className="mt-1.5 text-[14.5px] text-slate-500">Start chatting with your documents in under a minute.</p>
 
       <div className="mt-8 space-y-5">
-        <GoogleButton />
-        <Divider>or</Divider>
+        <GoogleSignIn mode="signup" onError={setError} />
 
         <form onSubmit={onSubmit} className="space-y-4">
           <FormAlert message={error} />

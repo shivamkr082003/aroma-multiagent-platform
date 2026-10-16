@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { authErrorMessage, getCurrentUser, login } from "@/lib/auth";
-import { Divider, FormAlert, GoogleButton, PasswordField, SubmitButton, TextField } from "../_components/fields";
+import { FormAlert, PasswordField, SubmitButton, TextField } from "../_components/fields";
+import { GoogleSignIn } from "../_components/GoogleSignIn";
 
 export function LoginForm() {
   const router = useRouter();
@@ -40,8 +41,7 @@ export function LoginForm() {
       <p className="mt-1.5 text-[14.5px] text-slate-500">Sign in to continue your conversations.</p>
 
       <div className="mt-8 space-y-5">
-        <GoogleButton />
-        <Divider>or</Divider>
+        <GoogleSignIn mode="signin" onError={setError} />
 
         <form onSubmit={onSubmit} className="space-y-4">
           <FormAlert message={error} />

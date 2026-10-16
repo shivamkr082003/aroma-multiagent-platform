@@ -197,3 +197,11 @@ async def test_answer_node_calls_async_mcp_tool(monkeypatch):
 
     assert result == {"reply": "The answer is 42."}
     assert len(tool_results) == 1 and "42" in tool_results[0]
+
+
+def test_mcp_test_reports_the_real_cause_not_the_task_group():
+    from mcp_client.manager import _root_cause
+
+    error = ExceptionGroup("unhandled errors in a TaskGroup", [ExceptionGroup("inner", [ConnectionError("refused")])])
+    assert isinstance(_root_cause(error), ConnectionError)
+    assert str(_root_cause(error)) == "refused"

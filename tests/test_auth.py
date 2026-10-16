@@ -267,3 +267,94 @@ def test_voice_cannot_write_into_someone_elses_chat(monkeypatch):
     register(bob, email="bob@example.com")
     alice.post("/chat", json={"message": "mine", "session_id": "alice-chat"})
     assert voice_upload(bob, session_id="alice-chat").status_code == 404
+
+
+# ===========================
+#  GOOGLE SIGN-IN
+# ===========================
+from types import SimpleNamespace  # noqa: E402
+
+from cryptography.hazmat.primitives.asymmetric import rsa  # noqa: E402
+
+import auth.google as google_auth  # noqa: E402
+
+GOOGLE_CLIENT = "aroma-test.apps.googleusercontent.com"
+GOOGLE_KEY = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+OTHER_KEY = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+
+
+@pytest.fixture
+def google(monkeypatch):
+    """Stand in for Google: our test key signs tokens, the fake JWKS returns its public half."""
+    monkeypatch.setenv("GOOGLE_CLIENT_ID", GOOGLE_CLIENT)
+    monkeypatch.setattr(google_auth, "_jwks",
+                        lambda: SimpleNamespace(get_signing_key_from_jwt=lambda t: SimpleNamespace(key=GOOGLE_KEY.public_key())))
+
+    def token(key=GOOGLE_KEY, **overrides):
+        now = datetime.now(timezone.utc)
+        claims = {"iss": "https://accounts.google.com", "aud": GOOGLE_CLIENT, "sub": "google-123",
+                  "email": "Shivam@Example.com", "email_verified": True, "name": "Shivam Kumar",
+                  "iat": now, "exp": now + timedelta(hours=1)} | overrides
+        return jwt.encode(claims, key, algorithm="RS256", headers={"kid": "test"})
+
+    return token
+
+
+def test_auth_config_exposes_only_the_client_id(google, monkeypatch):
+    assert new_client().get("/auth/config").json() == {"google_client_id": GOOGLE_CLIENT}
+    monkeypatch.delenv("GOOGLE_CLIENT_ID")
+    assert new_client().get("/auth/config").json() == {"google_client_id": None}
+
+
+def test_google_sign_in_creates_account_and_session(google, session_factory):
+    client = new_client()
+    response = client.post("/auth/google", json={"credential": google()})
+    assert response.status_code == 200
+    assert response.json()["email"] == "shivam@example.com" and response.json()["name"] == "Shivam Kumar"
+    assert client.get("/auth/me").status_code == 200
+
+    # Second sign-in finds the same account instead of creating another.
+    assert new_client().post("/auth/google", json={"credential": google()}).json()["id"] == response.json()["id"]
+    with session_factory() as db:
+        user = db.query(User).one()
+    assert user.google_sub == "google-123" and user.password_hash is None
+
+
+@pytest.mark.parametrize("bad", [
+    {"aud": "someone-elses-app.apps.googleusercontent.com"},
+    {"iss": "https://evil.example.com"},
+    {"exp": datetime(2020, 1, 1, tzinfo=timezone.utc), "iat": datetime(2020, 1, 1, tzinfo=timezone.utc)},
+    {"email_verified": False},
+    {"key": OTHER_KEY},  # forged signature
+])
+def test_google_rejects_bad_tokens(google, bad):
+    response = new_client().post("/auth/google", json={"credential": google(**bad)})
+    assert response.status_code == 401
+
+
+def test_google_disabled_without_client_id(google, monkeypatch):
+    monkeypatch.delenv("GOOGLE_CLIENT_ID")
+    assert new_client().post("/auth/google", json={"credential": google()}).status_code == 401
+
+
+def test_google_links_existing_account_and_drops_its_unverified_password(google):
+    owner = new_client()
+    original = register(owner).json()  # shivam@example.com with a password nobody verified
+
+    response = new_client().post("/auth/google", json={"credential": google()})
+    assert response.json()["id"] == original["id"]  # same account, same chats
+
+    login = new_client().post("/auth/login", json={"email": "shivam@example.com", "password": PASSWORD})
+    assert login.status_code == 401  # a pre-registered password can't be used to get in any more
+
+
+def test_password_login_on_google_only_account_looks_like_a_wrong_password(google):
+    new_client().post("/auth/google", json={"credential": google()})
+    response = new_client().post("/auth/login", json={"email": "shivam@example.com", "password": "anything123"})
+    assert response.status_code == 401 and response.json()["detail"] == "Incorrect email or password."
+
+
+def test_email_linked_to_another_google_account_is_refused(google):
+    new_client().post("/auth/google", json={"credential": google()})
+    response = new_client().post("/auth/google", json={"credential": google(sub="google-999")})
+    assert response.status_code == 409

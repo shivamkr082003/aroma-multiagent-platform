@@ -113,23 +113,6 @@ export function SubmitButton({ loading, children, loadingText }: { loading: bool
   );
 }
 
-export function GoogleButton() {
-  return (
-    <button
-      type="button"
-      disabled
-      title="Google sign-in is coming soon"
-      className="relative flex h-11 w-full items-center justify-center gap-2.5 rounded-xl border border-slate-200 bg-white text-[14px] font-medium text-slate-700 shadow-[0_1px_2px_rgba(15,23,42,0.04)] disabled:cursor-not-allowed"
-    >
-      <GoogleIcon />
-      Continue with Google
-      <span className="absolute right-3 rounded-full bg-slate-100 px-2 py-0.5 text-[10.5px] font-semibold uppercase tracking-wide text-slate-500">
-        Soon
-      </span>
-    </button>
-  );
-}
-
 export function Divider({ children }: { children: ReactNode }) {
   return (
     <div className="flex items-center gap-3 text-[12px] font-medium uppercase tracking-[0.14em] text-slate-400">
@@ -177,17 +160,6 @@ function EyeOffIcon() {
   return (
     <svg aria-hidden viewBox="0 0 20 20" fill="none" className="h-[18px] w-[18px]">
       <path d="M3 3l14 14M8.2 8.3a2.75 2.75 0 0 0 3.5 3.5M5.2 5.4C3.6 6.5 2.4 8 1.7 9.7a1 1 0 0 0 0 .6c1.3 3.6 4.5 5.95 8.3 5.95 1.6 0 3-.4 4.3-1.1M8 3.95c.65-.13 1.32-.2 2-.2 3.8 0 7 2.35 8.3 5.95a1 1 0 0 1 0 .6c-.4 1.1-1 2.1-1.75 2.95" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function GoogleIcon() {
-  return (
-    <svg aria-hidden viewBox="0 0 18 18" className="h-[18px] w-[18px]">
-      <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92c1.7-1.57 2.68-3.88 2.68-6.62Z" />
-      <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.8.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.7H.96v2.33A9 9 0 0 0 9 18Z" />
-      <path fill="#FBBC05" d="M3.97 10.72A5.4 5.4 0 0 1 3.68 9c0-.6.1-1.18.29-1.72V4.95H.96A9 9 0 0 0 0 9c0 1.45.35 2.83.96 4.05l3.01-2.33Z" />
-      <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58A8.97 8.97 0 0 0 9 0 9 9 0 0 0 .96 4.95l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58Z" />
     </svg>
   );
 }

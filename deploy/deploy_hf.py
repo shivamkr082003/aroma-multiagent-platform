@@ -125,9 +125,12 @@ def main() -> None:
         api.create_repo(repo_id, repo_type="space", space_sdk="docker", exist_ok=True)
         for name, source in SECRETS.items():
             api.add_space_secret(repo_id, name, env[source])
-        for name, value in VARIABLES.items():
+        variables = dict(VARIABLES)
+        if env.get("GOOGLE_CLIENT_ID"):
+            variables["GOOGLE_CLIENT_ID"] = env["GOOGLE_CLIENT_ID"]  # public, so a variable, not a secret
+        for name, value in variables.items():
             api.add_space_variable(repo_id, name, value)
-        print(f"  {len(SECRETS)} secrets and {len(VARIABLES)} variables set")
+        print(f"  {len(SECRETS)} secrets and {len(variables)} variables set")
 
         api.upload_folder(
             repo_id=repo_id, repo_type="space", folder_path=tmp,

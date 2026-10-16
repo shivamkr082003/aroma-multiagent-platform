@@ -7,11 +7,13 @@ revision their tables match, then upgraded normally.
 """
 
 import sys
+import time
 from pathlib import Path
 
 from alembic import command
 from alembic.config import Config
 from sqlalchemy import inspect
+from sqlalchemy.exc import OperationalError
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
@@ -25,7 +27,16 @@ MCP_REVISION = "1b15b0ed2a7c"         # + mcp_servers
 def main() -> None:
     config = Config(str(ROOT / "alembic.ini"))
     config.set_main_option("script_location", str(ROOT / "alembic"))
-    tables = set(inspect(engine).get_table_names())
+    # Serverless Postgres (Neon) may take a few seconds to wake up; retry briefly.
+    for attempt in range(1, 4):
+        try:
+            tables = set(inspect(engine).get_table_names())
+            break
+        except OperationalError as error:
+            if attempt == 3:
+                raise
+            print(f"Database not reachable yet ({str(error.orig).strip().splitlines()[0][:80]}); retrying…")
+            time.sleep(3 * attempt)
 
     if "alembic_version" not in tables and "sessions" in tables:
         revision = MCP_REVISION if "mcp_servers" in tables else INIT_REVISION

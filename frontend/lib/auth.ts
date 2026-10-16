@@ -29,6 +29,17 @@ export async function register(name: string, email: string, password: string): P
   return response.data;
 }
 
+export async function getAuthConfig(): Promise<{ google_client_id: string | null }> {
+  const response = await authClient.get<{ google_client_id: string | null }>("/config");
+  return response.data;
+}
+
+/** Exchange the ID token from "Sign in with Google" for an Aroma session. */
+export async function loginWithGoogle(credential: string): Promise<AuthUser> {
+  const response = await authClient.post<AuthUser>("/google", { credential });
+  return response.data;
+}
+
 export async function logout(): Promise<void> {
   await authClient.post("/logout");
 }

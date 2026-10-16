@@ -51,6 +51,10 @@ class LoginRequest(BaseModel):
         return value.strip().lower()
 
 
+class GoogleLoginRequest(BaseModel):
+    credential: str = Field(..., min_length=1, max_length=4096)  # the ID token from Google
+
+
 class UserResponse(BaseModel):
     id: str
     name: str
